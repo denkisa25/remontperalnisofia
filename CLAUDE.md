@@ -88,7 +88,7 @@ on dark. `--brass` is for backgrounds and borders.
 - Body: **Golos Text** 400/500
 - Numbers, codes, prices, eyebrows, labels: **JetBrains Mono** 400/500
 
-Load from Google Fonts with `subset=cyrillic,cyrillic-ext,latin`. The mono face
+Self-hosted via Fontsource (`src/styles/fonts.css`, subsets cyrillic, cyrillic-ext, latin) — no requests to Google. The mono face
 for numerics is deliberate: every appliance carries a stamped rating plate, so
 figures should read as machine data, not marketing.
 

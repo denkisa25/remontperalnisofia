@@ -9,7 +9,8 @@ draft: true
 ---
 
 <!--
-  EDITORIAL BEFORE PUBLISHING: WHOLE ARTICLE IS ABOUT DISHWASHERS (съдомиялни) — out of scope. Cut it, or re-scope to dryers/washers. If cut, repoint its 301 in public/.htaccess to /saveti/. Needs a summary if kept.
+  OUT OF SCOPE — keep `draft: true` permanently (client decision). Covers dishwashers (съдомиялни).
+  Its old URL 301-redirects to /saveti/ in public/.htaccess.
 -->
 Добрата поддръжка на съдомиялната  е гаранцията за по-дългата й експлоатация. Като цяло съдомиялните са уреди, които искат добро почистване, защото ежедневно измиват купища мръсни съдове. За да избегнете повреда и последващ ремонт на съдомиялни, добре е да пазите уреда си от твърди частици, запушване и замърсяване. Миялната машина днес е незаменима част от кухнята на всяко семейство. Тя е част от бялата техника в дома ни и като такава изисква определени почистващи практики.
 

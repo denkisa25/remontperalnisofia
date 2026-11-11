@@ -15,16 +15,16 @@
 # pattern -> 404, decoded pattern -> 301). Keep this file saved as UTF-8.
 #
 # Verify every target resolves in dist/ before cutover: `npm run check:redirects`.
-# A 301 into a 404 is worse than no 301. Targets under /saveti/ resolve only
-# once that article is no longer `draft: true`.
+# A 301 into a 404 is worse than no 301. The two off-scope articles (dishwashers,
+# white goods) stay draft permanently, so their old URLs go to the /saveti/ index.
 
 # Какво трябва да знаем за поддръжката и ремонта на бялата техника у дома?
 # was /%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d0%b8%d0%b7%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-%d0%bd%d0%b0%d0%b9-%d0%b4%d0%be%d0%b1%d1%80%d0%b0%d1%82%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f/
-RedirectMatch 301 ^/как-да-изберем-най-добрата-пералня/?$ /saveti/poddrazhka-na-sushilni/
+RedirectMatch 301 ^/как-да-изберем-най-добрата-пералня/?$ /saveti/
 
 # 5 практични съвета за по-добра поддръжка на съдомиялната!
 # was /5-%d0%bf%d1%80%d0%b0%d0%ba%d1%82%d0%b8%d1%87%d0%bd%d0%b8-%d1%81%d1%8a%d0%b2%d0%b5%d1%82%d0%b0-%d0%b7%d0%b0-%d0%bf%d0%be-%d0%b4%d0%be%d0%b1%d1%80%d0%b0-%d0%bf%d0%be%d0%b4%d0%b4%d1%80%d1%8a%d0%b6%d0%ba/
-RedirectMatch 301 ^/5-практични-съвета-за-по-добра-поддръжк/?$ /saveti/5-saveta-za-poddrazhka/
+RedirectMatch 301 ^/5-практични-съвета-за-по-добра-поддръжк/?$ /saveti/
 
 # Ремонт на Перални – как да удължим живота на пералнята?
 # was /%d1%80%d0%b5%d0%bc%d0%be%d0%bd%d1%82-%d0%bd%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d0%b8-%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d1%83%d0%b4%d1%8a%d0%bb%d0%b6%d0%b8%d0%bc-%d0%b6%d0%b8%d0%b2%d0%be/
@@ -86,20 +86,22 @@ Redirect 301 /category/ /saveti/
 # ============================================================================
 # 4. CACHING
 # ============================================================================
-<IfModule mod_expires.c>
-  ExpiresActive On
-
-  # Astro fingerprints these — safe to cache hard
-  <FilesMatch "\.(js|css|woff2|webp|avif|svg|png|jpg|jpeg)$">
-    ExpiresDefault "access plus 1 year"
-    Header append Cache-Control "immutable"
+<IfModule mod_headers.c>
+  # Static files: short cache, always revalidate. Covers files copied from public/
+  # (logo.svg, robots.txt, sitemap, ...) which are NOT fingerprinted.
+  <FilesMatch "\.(svg|png|jpe?g|webp|avif|ico|woff2?|js|css|txt|xml|json)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
   </FilesMatch>
 
   # HTML must revalidate or a deploy does not reach returning visitors
   <FilesMatch "\.html$">
-    ExpiresDefault "access plus 0 seconds"
     Header set Cache-Control "public, max-age=0, must-revalidate"
   </FilesMatch>
+
+  # Only /_astro/* is content-hashed by the build — safe to cache for a year
+  <If "%{REQUEST_URI} =~ m#^/_astro/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
 </IfModule>
 
 <IfModule mod_deflate.c>

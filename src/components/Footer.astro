@@ -19,6 +19,8 @@ const nav = [
 ];
 // build-time year: the old site's footer was stuck on 2017
 const year = new Date().getFullYear();
+const { legalName, eik, address } = site.controller;
+const legal = [legalName, eik && `ЕИК ${eik}`, address].filter(Boolean).join(' · ');
 ---
 
 <footer class="site-footer">
@@ -34,6 +36,7 @@ const year = new Date().getFullYear();
     <nav class="fnav" aria-label="Долна навигация">
       {nav.map((n) => <a href={n.href}>{n.label}</a>)}
     </nav>
+    {legal && <p class="legal">{legal}</p>}
     <p class="copy">© {year} {site.name}</p>
   </div>
 </footer>
@@ -76,6 +79,9 @@ const year = new Date().getFullYear();
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+  }
+  .legal {
+    margin-top: 14px;
   }
   .copy {
     margin-top: 14px;

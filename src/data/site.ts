@@ -21,6 +21,18 @@ export const site = {
   // It must never appear on the site: it was a spam magnet and it identifies
   // him by name, which he does not want.
 
+  /**
+   * Data controller for the privacy policy and footer. Leave '' until the
+   * client / a lawyer supplies them — NEVER invent. The privacy page shows a
+   * visible "to be filled" marker for each empty field; the footer renders
+   * only the fields that are filled in.
+   */
+  controller: {
+    legalName: '',
+    eik: '',
+    address: '',
+  },
+
   baseTown: 'Банкя, София',
   tagline: 'Ремонт на перални и сушилни по домовете',
   since: 2005,

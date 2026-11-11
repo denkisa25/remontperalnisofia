@@ -1,4 +1,5 @@
 ---
+import '../styles/fonts.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import { getImage } from 'astro:assets';
@@ -35,8 +36,6 @@ const canonical = new URL(path, site.url).href;
 const og = await getImage({ src: hero, width: 1200, height: 630, fit: 'cover', format: 'jpeg' });
 const ogImage = new URL(og.src, site.url).href;
 const hasSaveti = (await getSaveti()).length > 0;
-const fonts =
-  'https://fonts.googleapis.com/css2?family=Oswald:wght@500&family=Golos+Text:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap&subset=cyrillic,cyrillic-ext,latin';
 ---
 
 <!doctype html>
@@ -67,11 +66,7 @@ const fonts =
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href={fonts} rel="stylesheet" />
-
-    <!-- pickers/chips are dead without JS; the page offers a link list instead -->
+    {/* pickers/chips are dead without JS; the page offers a link list instead */}
     <noscript><style>.js-only{display:none!important}</style></noscript>
 
     <Fragment

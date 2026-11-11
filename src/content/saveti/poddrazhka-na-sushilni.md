@@ -9,7 +9,8 @@ draft: true
 ---
 
 <!--
-  EDITORIAL BEFORE PUBLISHING: The slug says sushilni but the text is about "бяла техника" in general: it also covers печки, фурни and съдомиялни, which are out of scope. Re-scope to washers and dryers, or cut and point its 301 at /saveti/. Needs a summary after that.
+  OUT OF SCOPE — keep `draft: true` permanently (client decision). Covers white goods in general — ovens, hobs, dishwashers.
+  Its old URL 301-redirects to /saveti/ in public/.htaccess.
 -->
 Поддръжката и ремонта на бялата техника се налага не само на домакинствата, но и на офис помещенията и обществените учреждения. Под понятието бяла техника най-често се ознаменуват съдомиялни машини, перални, сушилни и печки, както и фурни. Бялата техника е специфична по своята поддръжка и поправка, защото твърде често се използва (ежедневно!) и прекалено много се пренебрегва почистването й. Ето и какво е добре да знаете, за поддръжката и ремонта на бялата техника в дома ви.
 

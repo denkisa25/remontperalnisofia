@@ -12,6 +12,12 @@ import { breadcrumbs } from '../lib/schema';
  */
 const analytics = Boolean(site.analytics.ga4);
 const updated = '11 ноември 2026';
+const c = site.controller;
+const fields = [
+  { label: 'Наименование', value: c.legalName },
+  { label: 'ЕИК', value: c.eik },
+  { label: 'Адрес', value: c.address },
+];
 ---
 
 <Base
@@ -37,6 +43,20 @@ const updated = '11 ноември 2026';
           {site.name} (remontperalnisofia.com). Връзка по въпроси за личните данни:
           <a href={`mailto:${site.email}`}>{site.email}</a>.
         </p>
+        <ul class="controller">
+          {
+            fields.map((f) => (
+              <li>
+                <span class="k">{f.label}:</span>{' '}
+                {f.value ? (
+                  f.value
+                ) : (
+                  <span class="todo">[ДА СЕ ПОПЪЛНИ ПРЕДИ ЗАПУСК — не е предоставено]</span>
+                )}
+              </li>
+            ))
+          }
+        </ul>
 
         <h2>Какви данни и защо</h2>
         <h3>Форма за контакт</h3>
@@ -52,11 +72,6 @@ const updated = '11 ноември 2026';
           (не самия адрес) и часовете на последните запитвания от него. Ако изпращането на имейла не
           успее, записваме на сървъра часа, IP адреса и името от запитването, за да установим повредата
           — иначе формата може да спре да работи, без никой да забележи.
-        </p>
-        <h3>Шрифтове</h3>
-        <p>
-          Шрифтовете на сайта се зареждат от Google Fonts. При зареждането Google получава IP адреса и
-          данни за браузъра на посетителя.
         </p>
         <h3>Анализ на посещенията</h3>
         {
@@ -82,7 +97,8 @@ const updated = '11 ноември 2026';
         <h2>Кой получава данните</h2>
         <p>
           Не продаваме и не предоставяме данни на трети лица за маркетинг. Данните достигат до
-          хостинг доставчика на сайта и до Google — за шрифтовете{analytics ? ' и, при съгласие, за анализа' : ''}.
+          хостинг доставчика на сайта{analytics ? ' и, ако приемете бисквитките, до Google — за анализа на посещенията' : ''}.
+          Шрифтовете на сайта се хостват при нас и не се зареждат от външни услуги.
         </p>
 
         <h2>Вашите права</h2>
@@ -96,3 +112,23 @@ const updated = '11 ноември 2026';
     </div>
   </section>
 </Base>
+
+<style>
+  .controller {
+    list-style: none;
+    padding: 0;
+  }
+  .k {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+  .todo {
+    background: var(--brass);
+    color: var(--brass-ink);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+</style>

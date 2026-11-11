@@ -7,11 +7,11 @@ interface Props {
 const { brands } = Astro.props;
 ---
 
-<!--
+{/*
   Brand names as wordmarks, per design/index.html. The 2017 logo PNGs are
   150×150 with no alt text — they are not used until larger or SVG files exist
   (CLAUDE.md §17).
--->
+*/}
 <div class="logos">
   {brands.map((b) => <a class="logo" href={`/marki/${b.id}/`}>{b.data.brand}</a>)}
 </div>

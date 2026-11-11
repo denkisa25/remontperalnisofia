@@ -10,6 +10,10 @@
  * on /raioni/ with a real paragraph per zone — that page, not the homepage
  * chips, is what can rank for neighbourhood terms.
  *
+ * The `intro` paragraphs are deliberately neutral: they state coverage and nothing
+ * about what is repaired where or how fast. TODO(client interview): replace with
+ * confirmed specifics.
+ *
  * Also feeds `areaServed` in the LocalBusiness JSON-LD. The business is a
  * service-area business: no street address is published.
  */
@@ -33,8 +37,10 @@ export const zones: Zone[] = [
   {
     id: 'centar',
     name: 'Център',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'В централните квартали повечето сгради са стари и пералните често стоят в банята, на тесни места с труден достъп до задната страна на машината. Носим инструмент за работа в ограничено пространство.',
+      'Обслужваме централните квартали на София — Средец, Оборище, Възраждане, Сердика, Триадица, Яворов и Докторски паметник. Обадете се и кажете в кой квартал се намирате.',
     kvartali: [
       'Средец',
       'Оборище',
@@ -48,8 +54,10 @@ export const zones: Zone[] = [
   {
     id: 'zapad',
     name: 'Запад',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'Базирани сме в Банкя, така че западните квартали са най-близо до нас и обикновено се отзоваваме най-бързо там.',
+      'Работим от Банкя и обслужваме западните квартали на София — Люлин, Красна поляна, Илинден, Връбница, Овча купел, Обеля и околните. Обадете се и кажете в кой квартал се намирате.',
     kvartali: [
       'Люлин',
       'Банкя',
@@ -68,8 +76,10 @@ export const zones: Zone[] = [
   {
     id: 'iztok',
     name: 'Изток',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'Младост, Дружба и Горубляне са панелни комплекси с много перални на възраст над десет години — там най-често сменяме лагери и помпи.',
+      'Обслужваме източните квартали на София — Младост, Студентски град, Дружба, Горубляне, Слатина, Изгрев, Гео Милев и околните. Обадете се и кажете в кой квартал се намирате.',
     kvartali: [
       'Младост',
       'Студентски град',
@@ -86,8 +96,10 @@ export const zones: Zone[] = [
   {
     id: 'yug',
     name: 'Юг',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'В южните квартали се срещат повече сушилни и перални с термопомпа, включително по-нови модели с електроника, която изисква отделна диагностика.',
+      'Обслужваме южните квартали на София — Лозенец, Витоша, Бояна, Драгалевци, Симеоново, Манастирски ливади и околните. Обадете се и кажете в кой квартал се намирате.',
     kvartali: [
       'Лозенец',
       'Витоша',
@@ -105,8 +117,10 @@ export const zones: Zone[] = [
   {
     id: 'sever',
     name: 'Север',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'Надежда, Подуяне и Нови Искър са в обхвата ни ежедневно, включително през почивните дни по предварителна уговорка.',
+      'Обслужваме северните квартали на София — Надежда, Подуяне, Нови Искър, Свобода, Левски, Хаджи Димитър и околните. Работим и през почивните дни по предварителна уговорка.',
     kvartali: [
       'Надежда',
       'Подуяне',
@@ -123,8 +137,10 @@ export const zones: Zone[] = [
   {
     id: 'sela',
     name: 'Околни населени места',
+    // TODO(client interview): neutral coverage copy only. Add real, client-confirmed
+    // detail per zone (access, typical buildings, travel) — nothing unverified.
     intro:
-      'Обслужваме и селата около София. За по-далечните е добре да се обадите по-рано през деня, за да съгласуваме маршрута.',
+      'Обслужваме и населените места около София — Бистрица, Владая, Герман, Долни Пасарел, Казичане, Кокаляне, Лозен и другите от списъка. Обадете се и кажете къде се намирате.',
     kvartali: [
       'Бистрица',
       'Владая',

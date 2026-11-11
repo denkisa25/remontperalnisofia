@@ -8,10 +8,23 @@ const hasPublishedArticles = readdirSync('./src/content/saveti')
   .filter((f) => f.endsWith('.md'))
   .some((f) => !/^draft:\s*true\s*$/m.test(readFileSync(`./src/content/saveti/${f}`, 'utf8')));
 
+// Editorial notes live in markdown as <!-- comments -->; they must not reach public HTML.
+function remarkStripComments() {
+  const walk = (node) => {
+    if (!node.children) return;
+    node.children = node.children.filter(
+      (c) => !(c.type === 'html' && /^\s*<!--[\s\S]*-->\s*$/.test(c.value)),
+    );
+    node.children.forEach(walk);
+  };
+  return (tree) => walk(tree);
+}
+
 export default defineConfig({
   site: 'https://remontperalnisofia.com',
   output: 'static',
   trailingSlash: 'always',
+  markdown: { remarkPlugins: [remarkStripComments] },
   integrations: [
     sitemap({
       // contact.php is a handler, not a page
