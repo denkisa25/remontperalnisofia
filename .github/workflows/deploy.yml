@@ -1,0 +1,69 @@
+name: Build and deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Fail loudly rather than rsyncing an empty tree over a live site.
+      - name: Sanity-check the build
+        run: |
+          test -f dist/index.html || { echo "::error::dist/index.html missing"; exit 1; }
+          count=$(find dist -name '*.html' | wc -l)
+          echo "Built $count HTML pages"
+          [ "$count" -ge 5 ] || { echo "::error::only $count pages built, expected more"; exit 1; }
+          grep -q "лв" dist/index.html && { echo "::error::BGN found in output — prices are EUR only"; exit 1; } || true
+
+      # A 301 into a 404 is worse than no 301 (CLAUDE.md §7). Fails the deploy
+      # until every legacy redirect target exists in dist/ — for the /saveti/
+      # targets that means the article is no longer `draft: true`.
+      - name: Check legacy redirect targets resolve
+        run: npm run check:redirects
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.CPANEL_HOST }}" >> ~/.ssh/known_hosts
+
+      # --delete keeps the remote clean, but public_html also holds files the
+      # build does not produce (contact.php logs, cPanel's own cgi-bin).
+      # Exclude them explicitly or they get wiped on every deploy.
+      - name: Deploy
+        run: |
+          rsync -avz --delete \
+            --exclude '.well-known/' \
+            --exclude 'cgi-bin/' \
+            --exclude '.htpasswd' \
+            --exclude 'contact-log/' \
+            -e "ssh -i ~/.ssh/id_ed25519 -p 22" \
+            dist/ \
+            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:${{ secrets.CPANEL_PATH }}"
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

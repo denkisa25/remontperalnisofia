@@ -1,0 +1,188 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import FaultCard from '../../components/FaultCard.astro';
+import { site } from '../../data/site';
+import { getPovredi } from '../../lib/content';
+import { service, faqPage, breadcrumbs } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const all = await getPovredi();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const all = await getPovredi();
+const related = d.related
+  .map((id) => all.find((p) => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+const path = `/povredi/${entry.id}/`;
+const crumbs = [
+  { name: 'Начало', href: '/' },
+  { name: 'Повреди', href: '/#povredi' },
+  { name: d.cardTitle ?? d.title },
+];
+---
+
+<Base
+  title={`${d.title} — ремонт на място в София`}
+  description={d.summary}
+  jsonLd={[
+    service({ name: d.title, description: d.summary, url: new URL(path, site.url).href }),
+    ...(d.faq.length ? [faqPage(d.faq)] : []),
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Повреди', path: '/#povredi' },
+      { name: d.title, path },
+    ]),
+  ]}
+>
+  <Hero compact eyebrow={`Повреда · ${String(d.order).padStart(2, '0')}`} lede={d.summary}>
+    <Crumbs slot="crumbs" items={crumbs} />
+    <Fragment slot="title">{d.title}</Fragment>
+  </Hero>
+
+  <section class="picker-sec">
+    <div class="wrap">
+      <div class="say">
+        <span class="lbl">Кажете това по телефона</span>
+        <p>{`„${d.symptom}“`}</p>
+      </div>
+      <p class="likely">{d.cause}</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      {
+        d.causes.length > 0 && (
+          <>
+            <span class="eyebrow">Причини</span>
+            <h2>Най-честите причини</h2>
+            <div class="grid">
+              {d.causes.map((c, i) => (
+                <div class="card">
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                  <span class="idx numeric">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="sec mist">
+    <div class="wrap">
+      <div class="prose"><Content /></div>
+    </div>
+  </section>
+
+  {
+    d.faq.length > 0 && (
+      <section class="sec">
+        <div class="wrap">
+          <span class="eyebrow">Въпроси</span>
+          <h2>Често задавани въпроси</h2>
+          <div class="faq">
+            {d.faq.map((f) => (
+              <div>
+                <h3>{f.q}</h3>
+                <p>{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    related.length > 0 && (
+      <section class="sec mist">
+        <div class="wrap">
+          <span class="eyebrow">Свързани повреди</span>
+          <h2>Може да е и това</h2>
+          <div class="grid">
+            {related.map((p) => (
+              <FaultCard
+                href={`/povredi/${p.id}/`}
+                title={p.data.cardTitle ?? p.data.title}
+                body={p.data.summary}
+                idx={String(p.data.order).padStart(2, '0')}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="sec cta">
+    <div class="wrap">
+      <h2>Обадете се и опишете какво прави уредът</h2>
+      <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+      <p>{site.hoursNote} <a href="/greshki/">Какво да кажете, ако машината показва код →</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .picker-sec {
+    background: var(--brass-wash);
+    border-bottom: 1px solid var(--brass-line);
+    padding: 32px 0;
+  }
+  .say {
+    background: var(--paper);
+    border-left: 3px solid var(--brass);
+    padding: 14px 16px;
+    max-width: 720px;
+  }
+  .lbl {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+  }
+  .say p {
+    font-size: 17px;
+    margin-top: 4px;
+  }
+  .likely {
+    margin-top: 16px;
+    color: var(--brass-wash-ink);
+    max-width: 720px;
+  }
+  .faq {
+    display: grid;
+    gap: 28px;
+    margin-top: 32px;
+    max-width: 720px;
+  }
+  .faq p {
+    color: var(--ink-2);
+    margin-top: 8px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .cta p {
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+</style>

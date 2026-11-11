@@ -1,0 +1,178 @@
+---
+/**
+ * Backup channel — the phone is the conversion. Posts to /contact.php
+ * (honeypot, >=3s timestamp, per-IP rate limit, server-side validation). The
+ * script only stamps the timestamp, posts with fetch and shows the result; the
+ * user's input is never echoed back into the page.
+ */
+import { site } from '../data/site';
+---
+
+<form id="cform" method="post" action="/contact.php" novalidate class="js-only">
+  <div class="field">
+    <label class="lb" for="f-name">Име</label>
+    <input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120" />
+  </div>
+  <div class="field">
+    <label class="lb" for="f-tel">Телефон</label>
+    <input id="f-tel" name="phone" type="tel" autocomplete="tel" inputmode="tel" required />
+  </div>
+  <div class="field">
+    <label class="lb" for="f-msg">Какво прави уредът</label>
+    <textarea
+      id="f-msg"
+      name="message"
+      required
+      maxlength="4000"
+      placeholder="Напр. пералнята спира по средата и не източва водата"></textarea>
+  </div>
+  <div class="hp" aria-hidden="true">
+    <label for="f-web">Website</label>
+    <input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="t" value="" />
+  <label class="consent">
+    <input type="checkbox" id="f-ok" name="consent" />
+    <span>
+      Съгласен съм данните ми да бъдат използвани за връзка по това запитване.
+      <a href="/poveritelnost/">Политика за поверителност</a>
+    </span>
+  </label>
+  <p id="f-status" class="status" role="status" aria-live="polite"></p>
+  <button class="btn btn-primary btn-block" type="submit">Изпратете запитване</button>
+</form>
+
+<noscript>
+  <p class="nojs">
+    Формата изисква JavaScript. Обадете се на <a href={site.phoneHref}>{site.phone}</a> или пишете
+    на <a href={`mailto:${site.email}`}>{site.email}</a>.
+  </p>
+</noscript>
+
+<style>
+  .field {
+    margin-bottom: 16px;
+  }
+  .lb {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 7px;
+  }
+  input,
+  textarea {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 13px 15px;
+    min-height: 48px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--ink);
+  }
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+  .consent {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    font-size: 14px;
+    color: var(--ink-2);
+    margin: 18px 0;
+  }
+  .consent input {
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .status {
+    font-size: 15px;
+    margin: 0 0 14px;
+    min-height: 1.2em;
+  }
+  .status[data-kind='error'] {
+    color: var(--error);
+  }
+  .status[data-kind='ok'] {
+    color: var(--ink);
+    background: var(--brass-wash);
+    border-left: 3px solid var(--brass);
+    padding: 14px 16px;
+  }
+  .nojs {
+    color: var(--ink-2);
+  }
+</style>
+
+<script>
+  const form = document.getElementById('cform') as HTMLFormElement | null;
+  if (form) {
+    const status = document.getElementById('f-status') as HTMLElement;
+    const t = form.elements.namedItem('t') as HTMLInputElement;
+    const stamp = () => (t.value = String(Math.floor(Date.now() / 1000)));
+    stamp();
+
+    const msg: Record<string, string> = {
+      name: 'Моля, напишете името си.',
+      phone: 'Проверете телефонния номер — например 0886 473 988.',
+      message: 'Моля, опишете накратко какво прави уредът.',
+      consent: 'Трябва да се съгласите с обработката на данните, за да изпратим запитването.',
+      too_fast: 'Опитайте отново след няколко секунди.',
+      rate_limit: 'Изпратени са твърде много запитвания. Обадете се по телефона.',
+      send: 'Запитването не стигна до нас. Обадете се по телефона — така е по-бързо.',
+      method: 'Запитването не можа да бъде изпратено. Обадете се по телефона.',
+    };
+    const show = (kind: 'error' | 'ok', text: string) => {
+      status.dataset.kind = kind;
+      status.textContent = text;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const get = (k: string) => String(fd.get(k) ?? '').trim();
+
+      // same rules as contact.php, so the common mistakes are caught before sending
+      const digits = get('phone').replace(/[^\d+]/g, '');
+      if (!get('name')) return show('error', msg.name);
+      if (!/^(\+359|0)[1-9]\d{7,8}$/.test(digits)) return show('error', msg.phone);
+      if (!get('message')) return show('error', msg.message);
+      if (fd.get('consent') !== 'on') return show('error', msg.consent);
+
+      const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      btn.disabled = true;
+      show('ok', 'Изпращаме…');
+      try {
+        const res = await fetch(form.action, { method: 'POST', body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          form.reset();
+          stamp();
+          show('ok', 'Благодарим. Запитването е изпратено.');
+        } else {
+          stamp();
+          show('error', msg[data.error as string] ?? msg.send);
+        }
+      } catch {
+        show('error', msg.send);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+</script>

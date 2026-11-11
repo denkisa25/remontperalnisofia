@@ -1,0 +1,164 @@
+---
+/**
+ * GA4 behind a consent gate. When site.analytics.ga4 is empty no banner is
+ * rendered and nothing is ever requested from Google (the bundled script finds
+ * no #consent element and returns — there is nothing to consent to).
+ *
+ * Nothing loads from Google until the visitor presses "Приемам". Choice is kept
+ * in localStorage under `rps-consent`. After consent, every tel: click sends
+ * the conversion event (site.analytics.telConversionEvent) — one delegated
+ * listener, so it covers every call link on every page.
+ */
+import { site } from '../data/site';
+const { ga4, telConversionEvent } = site.analytics;
+---
+
+{
+  ga4 && (
+    <div id="consent" data-ga4={ga4} data-event={telConversionEvent}>
+      <section class="banner" aria-label="Бисквитки" hidden>
+        <p>
+          Използваме Google Analytics, за да видим кои страници помагат и колко
+          обаждания идват от сайта. Включва се само ако се съгласите.
+          <a href="/biskvitki/">Подробности</a>
+        </p>
+        <div class="actions">
+          <button type="button" class="btn btn-dark" data-consent="denied">Отказвам</button>
+          <button type="button" class="btn btn-dark" data-consent="granted">Приемам</button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+<style>
+  .banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 88px; /* above the mobile call bar */
+    z-index: 80;
+    max-width: 640px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--brass);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 8px 30px rgba(21, 24, 28, 0.18);
+  }
+  .banner[hidden] {
+    display: none;
+  }
+  p {
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .actions .btn {
+    flex: 1;
+    font-size: 15px;
+    padding: 12px 16px;
+    min-height: 48px;
+  }
+  @media (min-width: 860px) {
+    .banner {
+      bottom: 20px;
+      left: 20px;
+    }
+  }
+</style>
+
+<script>
+  const root = document.getElementById('consent');
+  if (root) {
+    const id = root.dataset.ga4 as string;
+    const eventName = root.dataset.event as string;
+    const KEY = 'rps-consent';
+    const w = window as unknown as {
+      dataLayer: unknown[];
+      gtag: (...a: unknown[]) => void;
+    };
+    let loaded = false;
+
+    const read = () => {
+      try {
+        return localStorage.getItem(KEY);
+      } catch {
+        return null;
+      }
+    };
+    const write = (v: string | null) => {
+      try {
+        if (v === null) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, v);
+      } catch {
+        /* private mode: the choice just will not persist */
+      }
+    };
+
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      w.dataLayer = w.dataLayer || [];
+      // gtag.js requires the real `arguments` object, not an array
+      w.gtag = function () {
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer.push(arguments);
+      };
+      w.gtag('js', new Date());
+      w.gtag('config', id);
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+      document.head.appendChild(s);
+    };
+
+    // every tel: link, any page, one listener
+    document.addEventListener('click', (e) => {
+      if (!loaded) return;
+      const a = (e.target as Element | null)?.closest?.('a[href^="tel:"]');
+      if (!a) return;
+      w.gtag('event', eventName, {
+        link_url: a.getAttribute('href'),
+        page_path: location.pathname,
+        transport_type: 'beacon',
+      });
+    });
+
+    const banner = root.querySelector<HTMLElement>('.banner')!;
+    const choice = read();
+    if (choice === 'granted') load();
+    else if (choice === null) banner.hidden = false;
+
+    banner.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('[data-consent]');
+      if (!b) return;
+      const v = b.dataset.consent as string;
+      write(v);
+      banner.hidden = true;
+      if (v === 'granted') load();
+    });
+
+    // "change my choice" button on /biskvitki/
+    document.querySelectorAll<HTMLElement>('[data-consent-reset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        write(null);
+        // best-effort removal of GA cookies (_ga, _ga_<id>) on this host and its parent
+        const host = location.hostname.split('.').slice(-2).join('.');
+        document.cookie.split(';').forEach((c) => {
+          const n = c.split('=')[0].trim();
+          if (n.startsWith('_ga')) {
+            for (const d of [location.hostname, '.' + host]) {
+              document.cookie = `${n}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${d}`;
+            }
+          }
+        });
+        location.reload();
+      });
+    });
+  }
+</script>

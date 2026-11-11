@@ -1,0 +1,15 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { categoryLabel } from '../lib/content';
+
+interface Props {
+  entry: CollectionEntry<'saveti'>;
+}
+const { entry } = Astro.props;
+---
+
+<a class="card" href={`/saveti/${entry.id}/`}>
+  <span class="cat">{categoryLabel[entry.data.category]}</span>
+  <h3 style="margin-top:10px">{entry.data.title}</h3>
+  <p>{entry.data.summary}</p>
+</a>

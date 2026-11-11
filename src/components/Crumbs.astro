@@ -1,0 +1,47 @@
+---
+/** Breadcrumbs for the dark compact hero. */
+interface Props {
+  items: { name: string; href?: string }[];
+}
+const { items } = Astro.props;
+---
+
+<nav class="crumbs" aria-label="Пътека">
+  <ol>
+    {
+      items.map((it, i) => (
+        <li>
+          {it.href ? <a href={it.href}>{it.name}</a> : <span aria-current="page">{it.name}</span>}
+          {i < items.length - 1 && <span class="sep" aria-hidden="true">/</span>}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .crumbs {
+    margin-bottom: 18px;
+  }
+  ol {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--on-dark-mute);
+  }
+  li {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 32px;
+  }
+  a {
+    color: var(--brass-lite);
+  }
+  .sep {
+    color: var(--on-dark-mute);
+  }
+</style>

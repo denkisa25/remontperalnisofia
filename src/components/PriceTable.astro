@@ -1,0 +1,86 @@
+---
+/**
+ * Price table. The amber banner is wired to site.pricing.placeholder — while
+ * the €25 figures are placeholders the banner MUST show. When real figures
+ * land: update the rows, flip that one boolean. Never hide the banner while the
+ * placeholder values are still there.
+ */
+import { site } from '../data/site';
+import { eur } from '../lib/content';
+
+const { pricing } = site;
+---
+
+{
+  pricing.showTable && (
+    <div class="pt">
+      {pricing.placeholder && (
+        <p class="banner" role="note">
+          ПРИМЕРНИ СТОЙНОСТИ — ПОДЛЕЖАТ НА АКТУАЛИЗАЦИЯ
+        </p>
+      )}
+      <table>
+        <caption class="sr-only">Цени в евро</caption>
+        <tbody>
+          {pricing.rows.map((r) => (
+            <tr>
+              <th scope="row">{r.label}</th>
+              <td class="numeric">{eur(r.price)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="note">{pricing.note}</p>
+    </div>
+  )
+}
+
+<style>
+  .pt {
+    margin-top: 40px;
+    max-width: 760px;
+  }
+  .pt p.banner {
+    background: var(--brass);
+    color: var(--brass-ink);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    margin: 0;
+    max-width: none;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+  th,
+  td {
+    padding: 14px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: left;
+    font-size: 16px;
+  }
+  th {
+    font-weight: 400;
+    color: var(--on-dark);
+  }
+  td {
+    text-align: right;
+    white-space: nowrap;
+    color: var(--brass-lite);
+    font-weight: 500;
+  }
+  tr:first-child th,
+  tr:first-child td {
+    border-top: 0;
+  }
+  .pt p.note {
+    max-width: none;
+    font-size: 15px;
+    color: var(--on-dark-mute);
+  }
+</style>

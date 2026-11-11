@@ -1,0 +1,118 @@
+# remontperalnisofia.com
+#
+# ============================================================================
+# 1. LEGACY REDIRECTS — BLOCKING REQUIREMENT BEFORE LAUNCH
+# ============================================================================
+#
+# The old WordPress posts were Cyrillic-slugged, live, and indexed. They carry
+# the only organic traffic this site has. Generated from wp_posts
+# (docs/legacy-import/url-map.json is the audit trail).
+#
+# IMPORTANT — rules are written with the DECODED UTF-8 slug, not the
+# percent-encoded one. Apache matches Redirect/RedirectMatch against the
+# %-decoded URL path, so the encoded form from docs/legacy-import/
+# redirects.htaccess never matches (verified against Apache 2.4: encoded
+# pattern -> 404, decoded pattern -> 301). Keep this file saved as UTF-8.
+#
+# Verify every target resolves in dist/ before cutover: `npm run check:redirects`.
+# A 301 into a 404 is worse than no 301. Targets under /saveti/ resolve only
+# once that article is no longer `draft: true`.
+
+# Какво трябва да знаем за поддръжката и ремонта на бялата техника у дома?
+# was /%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d0%b8%d0%b7%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-%d0%bd%d0%b0%d0%b9-%d0%b4%d0%be%d0%b1%d1%80%d0%b0%d1%82%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f/
+RedirectMatch 301 ^/как-да-изберем-най-добрата-пералня/?$ /saveti/poddrazhka-na-sushilni/
+
+# 5 практични съвета за по-добра поддръжка на съдомиялната!
+# was /5-%d0%bf%d1%80%d0%b0%d0%ba%d1%82%d0%b8%d1%87%d0%bd%d0%b8-%d1%81%d1%8a%d0%b2%d0%b5%d1%82%d0%b0-%d0%b7%d0%b0-%d0%bf%d0%be-%d0%b4%d0%be%d0%b1%d1%80%d0%b0-%d0%bf%d0%be%d0%b4%d0%b4%d1%80%d1%8a%d0%b6%d0%ba/
+RedirectMatch 301 ^/5-практични-съвета-за-по-добра-поддръжк/?$ /saveti/5-saveta-za-poddrazhka/
+
+# Ремонт на Перални – как да удължим живота на пералнята?
+# was /%d1%80%d0%b5%d0%bc%d0%be%d0%bd%d1%82-%d0%bd%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d0%b8-%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d1%83%d0%b4%d1%8a%d0%bb%d0%b6%d0%b8%d0%bc-%d0%b6%d0%b8%d0%b2%d0%be/
+RedirectMatch 301 ^/ремонт-на-перални-как-да-удължим-живо/?$ /saveti/kak-da-udalzhim-zhivota-na-peralnyata/
+
+# Експресен Ремонт Бяла Техника 0886473988
+# was /%d0%b5%d0%ba%d1%81%d0%bf%d1%80%d0%b5%d1%81%d0%b5%d0%bd-%d1%80%d0%b5%d0%bc%d0%be%d0%bd%d1%82-%d0%b1%d1%8f%d0%bb%d0%b0-%d1%82%d0%b5%d1%85%d0%bd%d0%b8%d0%ba%d0%b0-0886473988/
+RedirectMatch 301 ^/експресен-ремонт-бяла-техника-0886473988/?$ /
+
+# Каква сушилня е добре да си купим? Ремонт на сушилни
+# was /%d0%ba%d0%b0%d0%ba%d0%b2%d0%be-%d1%82%d1%80%d1%8f%d0%b1%d0%b2%d0%b0-%d0%b4%d0%b0-%d0%b7%d0%bd%d0%b0%d0%b5%d1%82%d0%b5-%d0%bf%d1%80%d0%b8-%d0%b8%d0%b7%d0%b1%d0%be%d1%80%d0%b0-%d0%bd%d0%b0-%d0%bf%d0%b5/
+RedirectMatch 301 ^/какво-трябва-да-знаете-при-избора-на-пе/?$ /saveti/izbor-na-sushilnya/
+
+# Пералнята не изхвърля водата – какъв е проблемът?
+# was /%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc-%d0%b8%d0%b7%d1%85%d0%b2%d1%8a%d1%80%d0%bb%d1%8f%d0%bd%d0%b5-%d0%bd%d0%b0-%d0%b2%d0%be%d0%b4%d0%b0%d1%82%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f/
+RedirectMatch 301 ^/проблем-изхвърляне-на-водата-пералня/?$ /povredi/ne-iztochva-voda/
+
+# Как да почистим филтъра на пералнята и кога да се обадим на сервиз?
+# was /%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d0%bf%d0%be%d1%87%d0%b8%d1%81%d1%82%d0%b8%d0%bc-%d1%84%d0%b8%d0%bb%d1%82%d1%8a%d1%80%d0%b0-%d0%bd%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f%d1%82%d0%b0/
+RedirectMatch 301 ^/как-да-почистим-филтъра-на-пералнята/?$ /saveti/pochistvane-na-filtara/
+
+# WordPress leftovers that should not 404 into the void:
+Redirect 301 /wp-admin/ /
+Redirect 301 /wp-login.php /
+Redirect 301 /feed/ /saveti/
+Redirect 301 /category/ /saveti/
+
+# ============================================================================
+# 2. CANONICAL HOST + HTTPS
+# ============================================================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # https
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # strip www
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # Astro builds directory-style URLs; serve index.html for /path/
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^(.*)$ /$1/index.html [L]
+</IfModule>
+
+# ============================================================================
+# 3. SECURITY HEADERS
+# ============================================================================
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# ============================================================================
+# 4. CACHING
+# ============================================================================
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Astro fingerprints these — safe to cache hard
+  <FilesMatch "\.(js|css|woff2|webp|avif|svg|png|jpg|jpeg)$">
+    ExpiresDefault "access plus 1 year"
+    Header append Cache-Control "immutable"
+  </FilesMatch>
+
+  # HTML must revalidate or a deploy does not reach returning visitors
+  <FilesMatch "\.html$">
+    ExpiresDefault "access plus 0 seconds"
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# ============================================================================
+# 5. HARDENING
+# ============================================================================
+Options -Indexes
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+ErrorDocument 404 /404.html

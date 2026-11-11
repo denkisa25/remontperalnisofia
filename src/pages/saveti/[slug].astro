@@ -1,0 +1,93 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import { site } from '../../data/site';
+import { getSaveti, categoryLabel } from '../../lib/content';
+import { breadcrumbs } from '../../lib/schema';
+
+// drafts are filtered out in getSaveti(), so an unpublished article has no page
+export async function getStaticPaths() {
+  const all = await getSaveti();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const path = `/saveti/${entry.id}/`;
+const date = (x: Date) => x.toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.summary,
+  datePublished: d.published.toISOString().slice(0, 10),
+  ...(d.updated ? { dateModified: d.updated.toISOString().slice(0, 10) } : {}),
+  mainEntityOfPage: new URL(path, site.url).href,
+  author: { '@id': `${site.url}/#business` },
+  publisher: { '@id': `${site.url}/#business` },
+};
+---
+
+<Base
+  title={`${d.title} | ${site.name}`}
+  description={d.summary}
+  ogType="article"
+  jsonLd={[
+    article,
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Съвети', path: '/saveti/' },
+      { name: d.title, path },
+    ]),
+  ]}
+>
+  <Hero compact eyebrow={categoryLabel[d.category]} lede={d.summary}>
+    <Crumbs
+      slot="crumbs"
+      items={[{ name: 'Начало', href: '/' }, { name: 'Съвети', href: '/saveti/' }, { name: d.title }]}
+    />
+    <Fragment slot="title">{d.title}</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      <p class="meta numeric">
+        <time datetime={d.published.toISOString().slice(0, 10)}>{date(d.published)}</time>
+        {d.readingMinutes && <span> · {d.readingMinutes} мин. четене</span>}
+      </p>
+      <div class="prose"><Content /></div>
+    </div>
+  </section>
+
+  <section class="sec mist cta">
+    <div class="wrap">
+      <h2>Нужен ви е ремонт, не съвет?</h2>
+      <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+      <p>{site.hoursNote}</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .meta {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin-bottom: 24px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .cta p {
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+</style>

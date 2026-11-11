@@ -1,0 +1,148 @@
+/*
+ * Design tokens — remontperalnisofia.com
+ *
+ * Contrast rule, do not break it:
+ *   --brass on white is ~3.1:1 and FAILS for text.
+ *   Brass-coloured text uses --brass-deep on light, --brass-lite on dark.
+ *   --brass itself is for fills and borders only.
+ */
+
+:root {
+  /* ink */
+  --ink: #15181c;
+  --ink-2: #3a4048;
+  --ink-3: #5c636c; /* muted — 14px minimum */
+
+  /* ground */
+  --paper: #ffffff;
+  --mist: #f3f2ee;
+  --line: #dedcd5;
+
+  /* brass */
+  --brass: #b8860f; /* FILLS ONLY */
+  --brass-deep: #8a6408; /* brass text on light */
+  --brass-lite: #f0ce7a; /* brass text on dark */
+  --brass-wash: #fbf3dc; /* tinted panels */
+  --brass-line: #efe0b6; /* borders inside tinted panels */
+  --brass-ink: #1a1305; /* text on a brass fill */
+  --error: #8a1c1c;
+  --brass-edge: #d9ae3c; /* border of a brass button */
+  --brass-dark: #4a3304; /* drum interior of the logo on light */
+  --brass-wash-ink: #5a4a20; /* body text on --brass-wash */
+  --ring: #c9992b; /* parallax drum rings on dark */
+
+  /* dark section */
+  --dark: #15181c;
+  --dark-2: #0f1114;
+  --on-dark: #c2c7ce;
+  --on-dark-mute: #a8aeb6;
+  --on-dark-lede: #d5d9de; /* lede on the photo hero */
+  --hero-ink: #0a0b0d; /* photo hero gradient */
+
+  /* zone wheel */
+  --zone-disc: #e6e4dc;
+  --zone-edge: #d2cfc4;
+  --zone: #dcd9cf;
+  --zone-on: #e8cc86;
+
+  /* type */
+  --font-display: 'Oswald', system-ui, sans-serif;
+  --font-body: 'Golos Text', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* scale */
+  --step--1: 0.875rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --step-3: clamp(1.75rem, 1.3rem + 2.2vw, 2.75rem);
+  --step-4: clamp(2rem, 1.2rem + 3.6vw, 3.625rem);
+
+  /* space */
+  --gutter: 1.5rem;
+  --wrap: 1120px;
+  --wrap-narrow: 1040px;
+  --section-y: clamp(3rem, 2rem + 4vw, 5.5rem);
+  --radius: 8px;
+  --radius-sm: 4px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+a {
+  color: var(--brass-deep);
+}
+a:hover {
+  color: #5e4106;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.wrap {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+}
+
+.section--dark .eyebrow {
+  color: var(--brass-lite);
+}
+
+/* Numbers, codes, prices read as machine data, not marketing. */
+.numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

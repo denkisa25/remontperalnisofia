@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+.env
+.env.*
+public/contact-log/
+
+# never commit: the UpdraftPlus dump holds the owner's personal data (admin email etc.)
+*.sql
+# bundles already unpacked into the repo
+*.zip

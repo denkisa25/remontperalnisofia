@@ -1,0 +1,43 @@
+---
+import { site } from '../data/site';
+---
+
+<div class="plate">
+  {
+    site.stats.map((s) => (
+      <div>
+        <div class="n">{s.value}</div>
+        <div class="l">{s.label}</div>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .plate {
+    background: var(--ink);
+    border-radius: var(--radius);
+    padding: clamp(24px, 3vw, 36px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+  @media (min-width: 760px) {
+    .plate {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .n {
+    font-family: var(--font-mono);
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 500;
+    color: var(--brass-lite);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .l {
+    font-size: 14px;
+    color: var(--on-dark-mute);
+    margin-top: 10px;
+  }
+</style>

@@ -1,0 +1,191 @@
+---
+/**
+ * The one interactive island. Chips and all eight answers are rendered into
+ * the HTML at build time; the script only toggles which answer is visible, so
+ * the content is indexable and nothing waits on a framework. Without JS the
+ * chips are hidden (.js-only) and a plain link list takes their place.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { site } from '../data/site';
+
+interface Props {
+  items: CollectionEntry<'povredi'>[];
+}
+const { items } = Astro.props;
+---
+
+<section class="picker-sec" aria-labelledby="picker-h" data-island="symptom-picker">
+  <div class="wrap picker-grid">
+    <div class="picker-intro">
+      <span class="eyebrow">Бърза диагноза</span>
+      <h2 id="picker-h">Какво прави уредът?</h2>
+      <p>
+        Изберете най-близкото до вашия случай и ще ви кажем какво най-вероятно е — преди да вдигнете
+        телефона.
+      </p>
+    </div>
+    <div class="picker-body">
+      <div class="chips js-only" role="group" aria-label="Какво прави уредът">
+        {
+          items.map((it) => (
+            <button
+              class="chip"
+              type="button"
+              aria-pressed="false"
+              aria-controls={`ans-${it.id}`}
+            >
+              {it.data.chip}
+            </button>
+          ))
+        }
+      </div>
+      <noscript>
+        <ul class="fallback">
+          {items.map((it) => <li><a href={`/povredi/${it.id}/`}>{it.data.title}</a></li>)}
+        </ul>
+      </noscript>
+
+      <div class="answers" aria-live="polite">
+        {
+          items.map((it) => (
+            <div class="answer" id={`ans-${it.id}`} hidden>
+              <p class="cause">{it.data.cause}</p>
+              <div class="say">
+                <span class="lbl">Кажете това по телефона</span>
+                <p>{`„${it.data.symptom}“`}</p>
+              </div>
+              <div class="answer-cta">
+                <a class="btn btn-dark" href={site.phoneHref}>Обадете се сега</a>
+                <a class="more" href={`/povredi/${it.id}/`}>
+                  Прочетете повече за тази повреда →
+                </a>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .picker-sec {
+    background: var(--brass-wash);
+    border-bottom: 1px solid var(--brass-line);
+    padding: 48px 0;
+  }
+  .picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    align-items: flex-start;
+  }
+  .picker-intro {
+    flex: 1 1 280px;
+    min-width: 0;
+  }
+  .picker-intro h2 {
+    font-size: clamp(26px, 3.6vw, 34px);
+    margin-top: 12px;
+  }
+  .picker-intro p {
+    color: var(--brass-wash-ink);
+    font-size: 16px;
+    margin-top: 12px;
+  }
+  .picker-body {
+    flex: 999 1 560px;
+    min-width: 0;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    font-family: var(--font-body);
+    font-size: 15px;
+    background: #fff;
+    border: 1px solid var(--brass-line);
+    color: var(--ink-2);
+    padding: 11px 16px;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+  .chip:hover {
+    border-color: var(--brass);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .fallback {
+    padding-left: 1.2em;
+  }
+  .answer {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid var(--brass-line);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .cause {
+    color: var(--ink-2);
+    font-size: 16px;
+  }
+  .say {
+    margin-top: 16px;
+    background: var(--brass-wash);
+    border-left: 3px solid var(--brass);
+    padding: 14px 16px;
+  }
+  .lbl {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+  }
+  .say p {
+    font-size: 16px;
+    margin-top: 4px;
+  }
+  .answer-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
+    margin-top: 18px;
+  }
+  .answer-cta .btn {
+    font-size: 16px;
+    padding: 15px 24px;
+  }
+  .more {
+    font-size: 15.5px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-island="symptom-picker"]');
+  if (root) {
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('.chip')];
+    const panels = [...root.querySelectorAll<HTMLElement>('.answer')];
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const target = chip.getAttribute('aria-controls');
+        for (const c of chips) c.setAttribute('aria-pressed', String(c === chip));
+        for (const p of panels) p.hidden = p.id !== target;
+      });
+    }
+  }
+</script>

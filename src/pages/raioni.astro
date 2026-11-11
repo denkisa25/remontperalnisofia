@@ -1,0 +1,89 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { site } from '../data/site';
+import { zones } from '../data/raioni';
+import { breadcrumbs } from '../lib/schema';
+---
+
+<Base
+  title={`Ремонт на перални и сушилни по квартали в София | ${site.phone}`}
+  description="Ремонт на перални и сушилни във всички квартали на София — Люлин, Младост, Лозенец, Надежда, Център — и в околните села. Базирани сме в Банкя."
+  jsonLd={[
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Райони', path: '/raioni/' },
+    ]),
+  ]}
+>
+  <Hero
+    compact
+    eyebrow="Райони"
+    lede="Базирани сме в Банкя и обслужваме цяла София, както и околните села. Кварталите са групирани по зони."
+  >
+    <Crumbs slot="crumbs" items={[{ name: 'Начало', href: '/' }, { name: 'Райони' }]} />
+    <Fragment slot="title">Къде ремонтираме перални и сушилни</Fragment>
+  </Hero>
+
+  {
+    zones.map((z, i) => (
+      <section id={z.id} class:list={['sec', { mist: i % 2 === 1 }]}>
+        <div class="wrap">
+          <span class="eyebrow numeric">{String(i + 1).padStart(2, '0')}</span>
+          <h2>{z.name}</h2>
+          <p class="lede">{z.intro}</p>
+          <ul class="kv">
+            {z.kvartali.map((k) => <li>{k}</li>)}
+          </ul>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="sec cta">
+    <div class="wrap">
+      <h2>Не виждате вашия квартал?</h2>
+      <p class="c-lede">Обадете се — покритието включва всички райони на Столична община.</p>
+      <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+      <p class="c-note">{site.hoursNote}</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h2 {
+    margin-top: 10px;
+  }
+  .kv {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 24px;
+  }
+  .kv li {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 7px 13px;
+    border-radius: 3px;
+  }
+  .c-lede {
+    color: var(--ink-2);
+    margin-top: 12px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .c-note {
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+</style>

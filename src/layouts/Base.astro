@@ -1,0 +1,93 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { getImage } from 'astro:assets';
+import hero from '../assets/hero-drum.jpg';
+import { site } from '../data/site';
+import { getSaveti } from '../lib/content';
+import { ld } from '../lib/schema';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CallBar from '../components/CallBar.astro';
+import Analytics from '../components/Analytics.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** canonical path, default = current */
+  path?: string;
+  noindex?: boolean;
+  /** structured data objects, each emitted as its own ld+json block */
+  jsonLd?: unknown[];
+  ogType?: 'website' | 'article';
+}
+
+const {
+  title,
+  description,
+  path = Astro.url.pathname,
+  noindex = false,
+  jsonLd = [],
+  ogType = 'website',
+} = Astro.props;
+
+const canonical = new URL(path, site.url).href;
+const og = await getImage({ src: hero, width: 1200, height: 630, fit: 'cover', format: 'jpeg' });
+const ogImage = new URL(og.src, site.url).href;
+const hasSaveti = (await getSaveti()).length > 0;
+const fonts =
+  'https://fonts.googleapis.com/css2?family=Oswald:wght@500&family=Golos+Text:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap&subset=cyrillic,cyrillic-ext,latin';
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <link rel="icon" href="/logo-mono.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#15181C" />
+    {
+      site.analytics.searchConsole && (
+        <meta name="google-site-verification" content={site.analytics.searchConsole} />
+      )
+    }
+
+    <meta property="og:locale" content={site.locale} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={fonts} rel="stylesheet" />
+
+    <!-- pickers/chips are dead without JS; the page offers a link list instead -->
+    <noscript><style>.js-only{display:none!important}</style></noscript>
+
+    <Fragment
+      set:html={jsonLd
+        .map((o) => `<script type="application/ld+json">${ld(o)}</script>`)
+        .join('')}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Към съдържанието</a>
+    <Header hasSaveti={hasSaveti} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer hasSaveti={hasSaveti} />
+    <CallBar />
+    <Analytics />
+  </body>
+</html>

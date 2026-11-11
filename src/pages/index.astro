@@ -1,0 +1,227 @@
+---
+import { getImage } from 'astro:assets';
+import hero from '../assets/hero-drum.jpg';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import SymptomPicker from '../components/SymptomPicker.astro';
+import StatsPlate from '../components/StatsPlate.astro';
+import Band from '../components/Band.astro';
+import FaultCard from '../components/FaultCard.astro';
+import PriceTable from '../components/PriceTable.astro';
+import BrandGrid from '../components/BrandGrid.astro';
+import ZoneAccordion from '../components/ZoneAccordion.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { site } from '../data/site';
+import { getPovredi, getMarki, getSaveti } from '../lib/content';
+import { localBusiness } from '../lib/schema';
+
+const povredi = await getPovredi();
+const marki = await getMarki();
+// the section is omitted entirely until at least one article is published
+const saveti = (await getSaveti()).slice(0, 3);
+
+const og = await getImage({ src: hero, width: 1200, height: 630, fit: 'cover', format: 'jpeg' });
+---
+
+<Base
+  title={`Ремонт на перални и сушилни в София — ${site.phone}`}
+  description={`Специализиран ремонт на перални и сушилни по домовете в София и околностите. Диагностика на място, 6 месеца гаранция. Обадете се: ${site.phone}`}
+  jsonLd={[localBusiness(new URL(og.src, site.url).href)]}
+>
+  <Hero
+    eyebrow={`София и околностите · от ${site.since} г.`}
+    lede="Само перални и сушилни — това е всичко, което ремонтираме. Диагностика на място, ремонт в рамките на деня в повечето случаи, 6 месеца гаранция на всяка сменена част."
+    note="Консултацията по телефона е безплатна"
+  >
+    <Fragment slot="title">Ремонт на перални<br />и <span>сушилни</span> по домовете</Fragment>
+  </Hero>
+
+  <SymptomPicker items={povredi} />
+
+  <section class="sec">
+    <div class="wrap"><StatsPlate /></div>
+  </section>
+
+  <Band eyebrow="В рамките на деня" variant="a">
+    <Fragment slot="title">Повредата не чака<br />до следващата седмица</Fragment>
+    <p>
+      Пълна пералня с вода и мокро пране не търпи отлагане. В повечето случаи се отзоваваме в
+      рамките на деня — включително през почивните дни, по предварителна уговорка.
+    </p>
+    <a class="btn btn-ghost" href={site.phoneHref} style="margin-top:28px">{site.phone}</a>
+  </Band>
+
+  <section class="sec" id="povredi">
+    <div class="wrap">
+      <span class="eyebrow">Чести повреди</span>
+      <h2>Какво поправяме най-често</h2>
+      <p class="lede">Повечето повреди се отстраняват на място, при вас, в рамките на едно посещение.</p>
+      <div class="grid">
+        {
+          povredi.map((p) => (
+            <FaultCard
+              href={`/povredi/${p.id}/`}
+              title={p.data.cardTitle ?? p.data.title}
+              body={p.data.summary}
+              idx={String(p.data.order).padStart(2, '0')}
+            />
+          ))
+        }
+        <FaultCard
+          href="/sushilni/"
+          title="Всичко за сушилни"
+          body="Кондензни и с термопомпа. Нагреватели, обдухващи мотори, датчици, профилактика."
+          idx={String(povredi.length + 1).padStart(2, '0')}
+          tint
+        />
+      </div>
+    </div>
+  </section>
+
+  <Band eyebrow="Цената" variant="b" id="cena">
+    <Fragment slot="title">Казваме я, преди<br />да започнем работа</Fragment>
+    <p>
+      Диагностика на място, после ясна цена. Ако не си струва ремонтът, ще ви го кажем — уред, в
+      който вече сте вложили пари, не бива да ви струва състояние.
+    </p>
+    <div class="principles">
+      {
+        site.pricing.principles.map((p) => (
+          <div>
+            <h3>{p.title}</h3>
+            <p>{p.body}</p>
+          </div>
+        ))
+      }
+    </div>
+    <PriceTable />
+  </Band>
+
+  <section class="sec" id="marki">
+    <div class="wrap">
+      <span class="eyebrow">Марки</span>
+      <h2>Обслужвани марки</h2>
+      <p class="lede">Изберете вашата марка за типични повреди и как да ни опишете проблема.</p>
+      <BrandGrid brands={marki} />
+    </div>
+  </section>
+
+  <section class="sec mist" id="raioni">
+    <div class="wrap">
+      <span class="eyebrow">Райони</span>
+      <h2>Къде идваме</h2>
+      <p class="lede">
+        Базирани сме в Банкя и обслужваме цяла София, както и околните села. Изберете зона, за да
+        видите кварталите. <a href="/raioni/">Всичко за обхвата →</a>
+      </p>
+      <ZoneAccordion />
+    </div>
+  </section>
+
+  {
+    saveti.length > 0 && (
+      <section class="sec" id="saveti">
+        <div class="wrap">
+          <div class="head-row">
+            <div>
+              <span class="eyebrow">Съвети</span>
+              <h2>Практични съвети</h2>
+            </div>
+            <a href="/saveti/">Всички статии →</a>
+          </div>
+          <div class="grid">
+            {saveti.map((a) => <ArticleCard entry={a} />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class={`sec ${saveti.length > 0 ? 'mist' : ''}`} id="kontakti">
+    <div class="wrap">
+      <span class="eyebrow">Контакти</span>
+      <h2>Свържете се с нас</h2>
+      <div class="contact-grid">
+        <div>
+          <p class="c-lede">
+            Най-бързият начин е обаждане. Опишете какво прави уредът и ще ви кажем какво най-вероятно е
+            и колко ще струва.
+          </p>
+          <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+          <p class="c-note">{site.hoursNote}</p>
+          <p class="c-mail">
+            Имейл: <a href={`mailto:${site.email}`}>{site.email}</a><br />Базирани в гр. Банкя,
+            обслужваме София и околностите.
+          </p>
+        </div>
+        <div><ContactForm /></div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .head-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .head-row a {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 22px;
+    margin-top: 36px;
+  }
+  .principles div {
+    border-top: 2px solid var(--brass);
+    padding-top: 18px;
+  }
+  .principles h3 {
+    color: #fff;
+  }
+  .principles p {
+    color: var(--on-dark);
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .contact-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+    margin-top: 32px;
+  }
+  .contact-grid > div {
+    flex: 1 1 380px;
+    min-width: 0;
+  }
+  .c-lede {
+    color: var(--ink-2);
+    font-size: 17px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .c-note {
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+  .c-mail {
+    margin-top: 24px;
+    font-size: 16px;
+    color: var(--ink-2);
+  }
+</style>

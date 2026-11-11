@@ -1,0 +1,99 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { site } from '../data/site';
+import { breadcrumbs } from '../lib/schema';
+
+const analytics = Boolean(site.analytics.ga4);
+---
+
+<Base
+  title={`Бисквитки | ${site.name}`}
+  description="Какви бисквитки използва сайтът и как да промените избора си."
+  jsonLd={[
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Бисквитки', path: '/biskvitki/' },
+    ]),
+  ]}
+>
+  <Hero compact eyebrow="Бисквитки" lede="Какво се записва в браузъра ви и как да го промените.">
+    <Crumbs slot="crumbs" items={[{ name: 'Начало', href: '/' }, { name: 'Бисквитки' }]} />
+    <Fragment slot="title">Бисквитки</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="prose">
+        {
+          analytics ? (
+            <>
+              <p>
+                Сайтът не поставя бисквитки, докато не приемете. Ако натиснете „Приемам“, се зарежда
+                Google Analytics 4 и Google записва в браузъра ви бисквитки за разпознаване на
+                посещенията.
+              </p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Име</th>
+                    <th>За какво</th>
+                    <th>Срок</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="numeric">_ga</td>
+                    <td>различава посетителите (Google Analytics)</td>
+                    <td>до 2 години</td>
+                  </tr>
+                  <tr>
+                    <td class="numeric">_ga_*</td>
+                    <td>запазва състоянието на сесията (Google Analytics)</td>
+                    <td>до 2 години</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>
+                Изборът ви („Приемам“ или „Отказвам“) се запомня в браузъра ви под името
+                <span class="numeric">rps-consent</span>. Това не е бисквитка и не се изпраща на сървъра.
+              </p>
+              <p>
+                <button type="button" class="btn btn-dark" data-consent-reset>Промени избора</button>
+              </p>
+            </>
+          ) : (
+            <p>
+              Към момента сайтът не поставя бисквитки и не зарежда скриптове за проследяване, затова не
+              показва съобщение за бисквитки. Ако това се промени, тази страница и политиката за
+              поверителност ще бъдат обновени преди включването.
+            </p>
+          )
+        }
+        <p>Повече за данните, които обработваме: <a href="/poveritelnost/">Политика за поверителност</a>.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 15px;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-3);
+  }
+</style>

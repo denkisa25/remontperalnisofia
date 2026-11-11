@@ -1,0 +1,140 @@
+---
+import { Picture } from 'astro:assets';
+import hero from '../assets/hero-drum.jpg';
+import { site } from '../data/site';
+
+interface Props {
+  eyebrow: string;
+  lede: string;
+  /** small line next to the call button */
+  note?: string;
+  /** compact = inner pages: no photo, smaller */
+  compact?: boolean;
+}
+const { eyebrow, lede, note, compact = false } = Astro.props;
+---
+
+<section class:list={['hero', { compact }]}>
+  {
+    !compact && (
+      <Picture
+        class="bg"
+        src={hero}
+        alt=""
+        widths={[640, 960, 1440, 1920]}
+        sizes="100vw"
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    )
+  }
+  <div class="wrap">
+    <div class="inner">
+      <slot name="crumbs" />
+      <span class="eyebrow">{eyebrow}</span>
+      <h1><slot name="title" /></h1>
+      <p class="lede">{lede}</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href={site.phoneHref}>Обадете се: {site.phone}</a>
+        {note && <span class="note">{note}</span>}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    background-color: var(--hero-ink);
+    min-height: 620px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .hero.compact {
+    min-height: 0;
+    background-color: var(--ink);
+  }
+  .hero :global(.bg) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  /* gradient weighted left so the headline holds (design/index.html) */
+  .hero:not(.compact)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(10, 11, 13, 0.94) 0%,
+      rgba(10, 11, 13, 0.82) 38%,
+      rgba(10, 11, 13, 0.3) 72%,
+      rgba(10, 11, 13, 0.55) 100%
+    );
+  }
+  @media (max-width: 720px) {
+    .hero {
+      min-height: 520px;
+    }
+    .hero:not(.compact)::after {
+      background: linear-gradient(
+        180deg,
+        rgba(10, 11, 13, 0.8) 0%,
+        rgba(10, 11, 13, 0.9) 60%,
+        rgba(10, 11, 13, 0.95) 100%
+      );
+    }
+  }
+  .wrap {
+    width: 100%;
+  }
+  .inner {
+    max-width: 640px;
+    padding: 80px 0;
+  }
+  .compact .inner {
+    max-width: 760px;
+    padding: 48px 0 56px;
+  }
+  .eyebrow {
+    color: var(--brass-lite);
+  }
+  h1 {
+    font-size: clamp(32px, 5.4vw, 58px);
+    margin-top: 16px;
+    color: #fff;
+  }
+  .compact h1 {
+    font-size: clamp(30px, 4.6vw, 48px);
+  }
+  h1 :global(span) {
+    color: var(--brass-lite);
+  }
+  .lede {
+    color: var(--on-dark-lede);
+    max-width: 52ch;
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    margin-top: 30px;
+  }
+  .note {
+    color: var(--on-dark-mute);
+    font-size: 15px;
+  }
+  .hero :global(a:not(.btn)) {
+    color: var(--brass-lite);
+  }
+</style>

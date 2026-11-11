@@ -1,0 +1,46 @@
+---
+import { site } from '../data/site';
+---
+
+<div class="callbar">
+  <div class="t"><b>{site.phone}</b>Обадете се — консултацията е безплатна</div>
+  <a class="btn btn-primary" href={site.phoneHref}>Звънни</a>
+</div>
+
+<style>
+  .callbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 70;
+    background: var(--ink);
+    padding: 11px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-top: 2px solid var(--brass);
+  }
+  .t {
+    flex: 1;
+    color: var(--on-dark-mute);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .t b {
+    display: block;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .btn {
+    font-size: 15px;
+    padding: 13px 18px;
+  }
+  @media (min-width: 860px) {
+    .callbar {
+      display: none;
+    }
+  }
+</style>

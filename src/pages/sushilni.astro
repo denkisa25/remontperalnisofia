@@ -1,0 +1,127 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Crumbs from '../components/Crumbs.astro';
+import FaultCard from '../components/FaultCard.astro';
+import BrandGrid from '../components/BrandGrid.astro';
+import { site } from '../data/site';
+import { getMarki, getPovredi } from '../lib/content';
+import { service, breadcrumbs } from '../lib/schema';
+
+const povredi = await getPovredi();
+const marki = await getMarki();
+const dryer = povredi.filter((p) => p.data.appliance === 'sushilnya');
+---
+
+<Base
+  title={`Ремонт на сушилни в София — кондензни и с термопомпа | ${site.phone}`}
+  description="Ремонт на кондензни сушилни и сушилни с термопомпа по домовете в София: нагреватели, обдухващи мотори, датчици, профилактика. Диагностика на място, 6 месеца гаранция."
+  jsonLd={[
+    service({
+      name: 'Ремонт на сушилни',
+      description: 'Ремонт на кондензни сушилни и сушилни с термопомпа по домовете в София.',
+      url: `${site.url}/sushilni/`,
+    }),
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Сушилни', path: '/sushilni/' },
+    ]),
+  ]}
+>
+  <Hero
+    compact
+    eyebrow="Сушилни"
+    lede="Кондензни и с термопомпа. Нагреватели, обдухващи мотори, датчици, профилактика — на място, при вас."
+  >
+    <Crumbs slot="crumbs" items={[{ name: 'Начало', href: '/' }, { name: 'Сушилни' }]} />
+    <Fragment slot="title">Ремонт на сушилни</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      <span class="eyebrow">Видове</span>
+      <h2>Кой тип сушилня имате</h2>
+      <div class="prose">
+        <p>
+          Основните видове сушилни са два и се различават по начина, по който отвеждат влагата. При
+          едните тръба извежда парата навън, през прозорец или стена. Кондензните сушат с горещ въздух
+          — влагата кондензира и се събира в контейнер или се отвежда във водопровода с помпа. Ремонтираме
+          кондензни сушилни и сушилни с термопомпа.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec mist">
+    <div class="wrap">
+      <span class="eyebrow">Повреди</span>
+      <h2>Какво се случва най-често</h2>
+      <div class="grid">
+        {
+          dryer.map((p) => (
+            <FaultCard
+              href={`/povredi/${p.id}/`}
+              title={p.data.cardTitle ?? p.data.title}
+              body={p.data.summary}
+              idx={String(p.data.order).padStart(2, '0')}
+            />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <span class="eyebrow">Поддръжка</span>
+      <h2>Две неща, които правите сами</h2>
+      <div class="prose">
+        <ol>
+          <li>Почиствайте филтъра за власинки след сушене — на вратата или под нея, според модела.</li>
+          <li>При кондензна сушилня изпразвайте контейнера за вода.</li>
+        </ol>
+        <p>
+          Запушеният филтър спира въздуха и натоварва нагревателя. Всичко друго — нагреватели,
+          мотори, датчици — е под напрежение и не се пипа без опит.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec mist" id="marki">
+    <div class="wrap">
+      <span class="eyebrow">Марки</span>
+      <h2>Обслужвани марки</h2>
+      <BrandGrid brands={marki} />
+    </div>
+  </section>
+
+  <section class="sec cta">
+    <div class="wrap">
+      <h2>Опишете какво прави сушилнята</h2>
+      <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+      <p>{site.hoursNote}</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h2 {
+    margin-top: 10px;
+  }
+  .prose {
+    margin-top: 16px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .cta p {
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+</style>

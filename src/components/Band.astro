@@ -1,0 +1,149 @@
+---
+/**
+ * Dark band with the two-layer drum-ring field. Far layer drifts up, near
+ * layer drifts down — transform + requestAnimationFrame, never
+ * background-attachment:fixed (broken on iOS Safari). Off under
+ * prefers-reduced-motion.
+ */
+interface Props {
+  eyebrow: string;
+  variant?: 'a' | 'b';
+  id?: string;
+}
+const { eyebrow, variant = 'a', id } = Astro.props;
+
+// ring fields, taken from design/index.html (one per band)
+const fields = {
+  a: {
+    slow: [
+      [120, 60, 130, 20],
+      [1310, 350, 155, 24],
+      [980, 40, 90, 14],
+      [640, 400, 110, 17],
+    ],
+    fast: [
+      [1130, 150, 46, 8, 6],
+      [370, 300, 38, 7, 5],
+      [820, 210, 30, 6, 4],
+      [240, 390, 52, 9, 6],
+      [1420, 80, 64, 10, 0],
+      [520, 110, 26, 5, 4],
+    ],
+  },
+  b: {
+    slow: [
+      [1340, 70, 140, 22],
+      [90, 330, 120, 18],
+      [700, -20, 100, 15],
+      [1060, 390, 86, 13],
+    ],
+    fast: [
+      [430, 180, 44, 8, 5],
+      [900, 230, 34, 6, 4],
+      [1200, 250, 28, 5, 4],
+      [260, 60, 56, 10, 6],
+    ],
+  },
+}[variant];
+---
+
+<section class="band" data-parallax id={id}>
+  <svg class="tex p-slow" viewBox="0 0 1440 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g class="rings far">
+      {fields.slow.map(([cx, cy, r, w]) => <circle cx={cx} cy={cy} r={r} stroke-width={w} />)}
+    </g>
+  </svg>
+  <svg class="tex p-fast" viewBox="0 0 1440 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g class="rings near">
+      {fields.fast.map(([cx, cy, r, w]) => <circle cx={cx} cy={cy} r={r} stroke-width={w} />)}
+    </g>
+    <g class="dots">
+      {fields.fast.filter((f) => f[4]).map(([cx, cy, , , d]) => <circle cx={cx} cy={cy} r={d} />)}
+    </g>
+  </svg>
+  <div class="wrap">
+    <span class="eyebrow">{eyebrow}</span>
+    <h2><slot name="title" /></h2>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    background: var(--ink);
+    padding: clamp(56px, 7vw, 88px) 0;
+    overflow: hidden;
+  }
+  .eyebrow {
+    color: var(--brass-lite);
+  }
+  h2 {
+    margin-top: 14px;
+    color: #fff;
+  }
+  .band :global(p) {
+    color: var(--on-dark);
+    max-width: 58ch;
+    margin-top: 16px;
+    font-size: 17px;
+  }
+  .tex {
+    position: absolute;
+    inset: -14% 0;
+    width: 100%;
+    height: 128%;
+    z-index: 0;
+    will-change: transform;
+    pointer-events: none;
+  }
+  .rings {
+    fill: none;
+    stroke: var(--ring);
+  }
+  .far {
+    opacity: 0.16;
+  }
+  .near {
+    opacity: 0.25;
+  }
+  .dots {
+    fill: var(--ring);
+    opacity: 0.29;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tex {
+      transform: none !important;
+    }
+  }
+</style>
+
+<script>
+  // transform-based parallax; nothing runs when the visitor asks for less motion
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const bands = [...document.querySelectorAll<HTMLElement>('[data-parallax]')];
+    let tick = false;
+    const run = () => {
+      const vh = innerHeight;
+      for (const b of bands) {
+        const r = b.getBoundingClientRect();
+        if (r.bottom < -120 || r.top > vh + 120) continue;
+        const prog = (vh - r.top) / (vh + r.height) - 0.5;
+        const slow = b.querySelector<HTMLElement>('.p-slow');
+        const fast = b.querySelector<HTMLElement>('.p-fast');
+        if (slow) slow.style.transform = `translate3d(0,${(prog * -46).toFixed(1)}px,0)`;
+        if (fast) fast.style.transform = `translate3d(0,${(prog * 76).toFixed(1)}px,0)`;
+      }
+      tick = false;
+    };
+    const onScroll = () => {
+      if (!tick) {
+        tick = true;
+        requestAnimationFrame(run);
+      }
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll, { passive: true });
+    run();
+  }
+</script>

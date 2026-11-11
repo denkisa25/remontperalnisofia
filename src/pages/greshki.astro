@@ -1,0 +1,179 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Crumbs from '../components/Crumbs.astro';
+import FaultCard from '../components/FaultCard.astro';
+import { site } from '../data/site';
+import { getPovredi } from '../lib/content';
+import { breadcrumbs } from '../lib/schema';
+
+/**
+ * Code FAMILIES only. No brand-specific codes anywhere (CLAUDE.md §6): a wrong
+ * code sends someone to open the wrong panel on a machine that is plugged in.
+ */
+const povredi = await getPovredi();
+const by = (...ids: string[]) =>
+  ids
+    .map((id) => povredi.find((p) => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+const families = [
+  {
+    id: 'ottichane',
+    name: 'Оттичане на водата',
+    what: 'Машината спира с вода в барабана или не успява да я изпомпа. Кодовете от това семейство говорят за помпа, отходен маркуч или запушване.',
+    dont: 'Не развивайте филтъра, докато машината е включена в контакта, и не го отваряйте без съд и кърпа — ще изтече вода.',
+    links: by('ne-iztochva-voda'),
+  },
+  {
+    id: 'podavane-na-voda',
+    name: 'Подаване на вода',
+    what: 'Машината не набира вода или я набира много бавно и програмата не тръгва.',
+    dont: 'Проверете само едно: дали кранът за вода е отворен. Ако е, не разглобявайте — обадете се. За тази повреда нямаме отделна страница, затова ни опишете по телефона какво се случва.',
+    links: [],
+  },
+  {
+    id: 'zagryavane',
+    name: 'Загряване',
+    what: 'Водата или въздухът не се нагряват. Кодовете сочат нагревател или датчик за температура. Валидно е и за сушилни.',
+    dont: 'Нагревателят е под напрежение. Не пипайте нищо отзад или отдолу, докато машината е включена.',
+    links: by('ne-zagryava', 'sushilnya-ne-sushi'),
+  },
+  {
+    id: 'motor-i-baraban',
+    name: 'Мотор и барабан',
+    what: 'Барабанът не се върти или не центрофугира, или се чува бучене. Кодовете сочат двигател, четки или лагери.',
+    dont: 'Не пускайте повторно центрофуга, ако машината бучи — износените лагери се влошават с всяко пускане.',
+    links: by('ne-centrofugira', 'shum'),
+  },
+  {
+    id: 'klyuchalka',
+    name: 'Ключалка на люка',
+    what: 'Люкът не се заключва или не се отключва. Машината не стартира, защото не отчита затворен люк.',
+    dont: 'Не дърпайте дръжката със сила — къса се и ремонтът става по-скъп.',
+    links: by('blokiral-lyuk'),
+  },
+  {
+    id: 'elektronika',
+    name: 'Електроника',
+    what: 'Машината не реагира на бутоните, дисплеят мига или светят неочаквани лампи. Кодовете сочат управляващия модул (програматора).',
+    dont: 'Не разглобявайте — електронният блок е под напрежение и се поврежда лесно. Изключете машината от контакта и ни опишете какво показва.',
+    links: by('ne-trygva'),
+  },
+];
+---
+
+<Base
+  title={`Грешки на перални и сушилни — какво показва кодът | ${site.phone}`}
+  description="Кодовете на грешки при перални и сушилни се групират в шест семейства: оттичане, подаване на вода, загряване, мотор и барабан, ключалка на люка, електроника. Какво да направите и какво да не пипате."
+  jsonLd={[
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Грешки', path: '/greshki/' },
+    ]),
+  ]}
+>
+  <Hero
+    compact
+    eyebrow="Кодове на грешки"
+    lede="Кодът на дисплея е бърз начин да разберете към кое семейство спада повредата и дали да пипате нещо. Тук няма таблица с кодове — и това е нарочно."
+  >
+    <Crumbs slot="crumbs" items={[{ name: 'Начало', href: '/' }, { name: 'Грешки' }]} />
+    <Fragment slot="title">Какво означава кодът на машината</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="prose">
+        <p>
+          Кодовете са различни при различните марки и модели. Един и същ код може да значи различни
+          неща, а грешен код ви праща към грешния капак на машина, която е включена в контакта. Затова
+          не даваме списък „код — повреда“. Даваме шестте семейства, в които попадат почти всички
+          кодове, и какво да направите във всяко.
+        </p>
+      </div>
+
+      <div class="say">
+        <h2 id="po-telefona">Какво да ни кажете по телефона</h2>
+        <ol>
+          <li>Кода точно както го пише на дисплея — букви и цифри, и дали мига.</li>
+          <li>
+            Марката и модела от табелката. Мястото е различно при различните марки: най-често е на
+            гърба на машината или по рамката около отвора на люка, вътре, когато отворите вратата.
+          </li>
+          <li>Какво правеше машината, когато се появи кодът — пране, центрофуга, сушене.</li>
+        </ol>
+        <p>
+          Ако не намирате табелката, кажете марката и какво прави уредът — достатъчно е за начало.
+        </p>
+        <a class="btn btn-dark" href={site.phoneHref}>Обадете се: {site.phone}</a>
+      </div>
+    </div>
+  </section>
+
+  {
+    families.map((f, i) => (
+      <section id={f.id} class:list={['sec', { mist: i % 2 === 0 }]}>
+        <div class="wrap">
+          <span class="eyebrow numeric">{String(i + 1).padStart(2, '0')}</span>
+          <h2>{f.name}</h2>
+          <div class="prose">
+            <p>{f.what}</p>
+            <p class="dont">
+              <b>Какво да не пипате:</b> {f.dont}
+            </p>
+          </div>
+          {f.links.length > 0 && (
+            <div class="grid">
+              {f.links.map((p) => (
+                <FaultCard
+                  href={`/povredi/${p.id}/`}
+                  title={p.data.cardTitle ?? p.data.title}
+                  body={p.data.summary}
+                  idx={String(p.data.order).padStart(2, '0')}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .say {
+    margin-top: 40px;
+    background: var(--brass-wash);
+    border: 1px solid var(--brass-line);
+    border-left: 3px solid var(--brass);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 760px;
+  }
+  .say h2 {
+    font-size: clamp(22px, 3vw, 28px);
+    margin: 0 0 12px;
+  }
+  .say ol {
+    padding-left: 1.3em;
+    color: var(--ink-2);
+  }
+  .say li + li {
+    margin-top: 8px;
+  }
+  .say p {
+    margin: 14px 0 18px;
+    color: var(--ink-2);
+  }
+  .dont b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  h2 {
+    margin-top: 10px;
+  }
+  .prose {
+    margin-top: 16px;
+  }
+</style>

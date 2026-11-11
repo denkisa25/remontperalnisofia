@@ -1,0 +1,34 @@
+# Legacy 301 map for remontperalnisofia.com
+# Generated from wp_posts. permalink_structure was /%postname%/, so every
+# published post lived at /<post_name>/ with the slug percent-encoded.
+#
+# Paste into public/.htaccess under section 1. Verify every target exists
+# in the new build before cutover — a 301 to a 404 is worse than no 301.
+
+# Какво трябва да знаем за поддръжката и ремонта на бялата техника у дома?
+# как-да-изберем-най-добрата-пералня
+Redirect 301 /%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d0%b8%d0%b7%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-%d0%bd%d0%b0%d0%b9-%d0%b4%d0%be%d0%b1%d1%80%d0%b0%d1%82%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f/ /saveti/poddrazhka-na-sushilni/
+
+# 5 практични съвета за по-добра поддръжка на съдомиялната!
+# 5-практични-съвета-за-по-добра-поддръжк
+Redirect 301 /5-%d0%bf%d1%80%d0%b0%d0%ba%d1%82%d0%b8%d1%87%d0%bd%d0%b8-%d1%81%d1%8a%d0%b2%d0%b5%d1%82%d0%b0-%d0%b7%d0%b0-%d0%bf%d0%be-%d0%b4%d0%be%d0%b1%d1%80%d0%b0-%d0%bf%d0%be%d0%b4%d0%b4%d1%80%d1%8a%d0%b6%d0%ba/ /saveti/5-saveta-za-poddrazhka/
+
+# Ремонт на Перални – как да удължим живота на пералнята?
+# ремонт-на-перални-как-да-удължим-живо
+Redirect 301 /%d1%80%d0%b5%d0%bc%d0%be%d0%bd%d1%82-%d0%bd%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d0%b8-%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d1%83%d0%b4%d1%8a%d0%bb%d0%b6%d0%b8%d0%bc-%d0%b6%d0%b8%d0%b2%d0%be/ /saveti/kak-da-udalzhim-zhivota-na-peralnyata/
+
+# Експресен Ремонт Бяла Техника 0886473988
+# експресен-ремонт-бяла-техника-0886473988
+Redirect 301 /%d0%b5%d0%ba%d1%81%d0%bf%d1%80%d0%b5%d1%81%d0%b5%d0%bd-%d1%80%d0%b5%d0%bc%d0%be%d0%bd%d1%82-%d0%b1%d1%8f%d0%bb%d0%b0-%d1%82%d0%b5%d1%85%d0%bd%d0%b8%d0%ba%d0%b0-0886473988/ /
+
+# Каква сушилня е добре да си купим? Ремонт на сушилни
+# какво-трябва-да-знаете-при-избора-на-пе
+Redirect 301 /%d0%ba%d0%b0%d0%ba%d0%b2%d0%be-%d1%82%d1%80%d1%8f%d0%b1%d0%b2%d0%b0-%d0%b4%d0%b0-%d0%b7%d0%bd%d0%b0%d0%b5%d1%82%d0%b5-%d0%bf%d1%80%d0%b8-%d0%b8%d0%b7%d0%b1%d0%be%d1%80%d0%b0-%d0%bd%d0%b0-%d0%bf%d0%b5/ /saveti/izbor-na-sushilnya/
+
+# Пералнята не изхвърля водата – какъв е проблемът?
+# проблем-изхвърляне-на-водата-пералня
+Redirect 301 /%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc-%d0%b8%d0%b7%d1%85%d0%b2%d1%8a%d1%80%d0%bb%d1%8f%d0%bd%d0%b5-%d0%bd%d0%b0-%d0%b2%d0%be%d0%b4%d0%b0%d1%82%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f/ /povredi/ne-iztochva-voda/
+
+# Как да почистим филтъра на пералнята и кога да се обадим на сервиз?
+# как-да-почистим-филтъра-на-пералнята
+Redirect 301 /%d0%ba%d0%b0%d0%ba-%d0%b4%d0%b0-%d0%bf%d0%be%d1%87%d0%b8%d1%81%d1%82%d0%b8%d0%bc-%d1%84%d0%b8%d0%bb%d1%82%d1%8a%d1%80%d0%b0-%d0%bd%d0%b0-%d0%bf%d0%b5%d1%80%d0%b0%d0%bb%d0%bd%d1%8f%d1%82%d0%b0/ /saveti/pochistvane-na-filtara/

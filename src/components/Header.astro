@@ -1,0 +1,106 @@
+---
+import { site } from '../data/site';
+import Logo from './Logo.astro';
+
+interface Props {
+  /** show the "Съвети" link only when at least one article is published */
+  hasSaveti?: boolean;
+}
+const { hasSaveti = false } = Astro.props;
+
+const nav = [
+  { href: '/#povredi', label: 'Повреди' },
+  { href: '/#marki', label: 'Марки' },
+  { href: '/#raioni', label: 'Райони' },
+  ...(hasSaveti ? [{ href: '/#saveti', label: 'Съвети' }] : []),
+  { href: '/#kontakti', label: 'Контакти' },
+];
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label={`${site.name} — начало`}>
+      <Logo size={40} />
+      <span class="t">Ремонт перални<br /><b>София</b></span>
+    </a>
+    <nav aria-label="Основна навигация">
+      {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+    </nav>
+    <a class="hdr-call" href={site.phoneHref}>{site.phone}</a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 72px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    min-height: 44px;
+  }
+  .t {
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .t b {
+    color: var(--brass-deep);
+    font-weight: 500;
+  }
+  nav {
+    display: none;
+    gap: 8px;
+    font-size: 15px;
+  }
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 8px;
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  nav a:hover {
+    color: var(--brass-deep);
+  }
+  .hdr-call {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+  }
+  .hdr-call:hover {
+    background: var(--ink-2);
+    color: #fff;
+  }
+  @media (min-width: 960px) {
+    nav {
+      display: flex;
+    }
+    .hdr-call {
+      display: inline-block;
+    }
+  }
+</style>

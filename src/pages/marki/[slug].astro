@@ -1,0 +1,174 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import FaultCard from '../../components/FaultCard.astro';
+import { site } from '../../data/site';
+import { getMarki, getPovredi } from '../../lib/content';
+import { service, breadcrumbs } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const all = await getMarki();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const povredi = await getPovredi();
+const faults = d.commonFaults
+  .map((id) => povredi.find((p) => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+const path = `/marki/${entry.id}/`;
+---
+
+<Base
+  title={`${d.title} | ${site.phone}`}
+  description={d.summary}
+  jsonLd={[
+    service({ name: d.title, description: d.summary, url: new URL(path, site.url).href }),
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Марки', path: '/#marki' },
+      { name: d.brand, path },
+    ]),
+  ]}
+>
+  <Hero compact eyebrow="Марка" lede={d.summary}>
+    <Crumbs
+      slot="crumbs"
+      items={[{ name: 'Начало', href: '/' }, { name: 'Марки', href: '/#marki' }, { name: d.brand }]}
+    />
+    <Fragment slot="title">{d.title}</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="prose"><Content /></div>
+      <div class="say">
+        <span class="lbl">Какво да кажете по телефона</span>
+        <p>
+          Марката, модела от табелката на машината и какво прави уредът. Ако на дисплея има код —
+          точно както го пише. <a href="/greshki/">Къде е табелката и какво значат кодовете →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {
+    faults.length > 0 && (
+      <section class="sec mist">
+        <div class="wrap">
+          <span class="eyebrow">Повреди</span>
+          <h2>Какво ремонтираме при {d.brand}</h2>
+          <div class="grid">
+            {faults.map((p) => (
+              <FaultCard
+                href={`/povredi/${p.id}/`}
+                title={p.data.cardTitle ?? p.data.title}
+                body={p.data.summary}
+                idx={String(p.data.order).padStart(2, '0')}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    d.codes.length > 0 && (
+      <section class="sec">
+        <div class="wrap">
+          <span class="eyebrow">Кодове</span>
+          <h2>Кодове на грешки {d.brand}</h2>
+          <div class="codes">
+            {d.codes.map((c) => (
+              <article class="code" id={c.code.toLowerCase()}>
+                <span class="cd numeric">{c.code}</span>
+                <div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                  {c.povreda && (
+                    <a href={`/povredi/${c.povreda}/`}>Повече за тази повреда →</a>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="sec cta">
+    <div class="wrap">
+      <h2>Обадете се за {d.brand}</h2>
+      <a class="bignum" href={site.phoneHref}>{site.phone}</a>
+      <p class="disclaimer">
+        {d.brand} е търговска марка на съответния производител. Не сме оторизиран сервиз на
+        производителя.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .say {
+    margin-top: 32px;
+    background: var(--brass-wash);
+    border-left: 3px solid var(--brass);
+    padding: 16px 18px;
+    max-width: 68ch;
+  }
+  .lbl {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+  }
+  .say p {
+    margin-top: 6px;
+    color: var(--ink-2);
+  }
+  .codes {
+    display: grid;
+    gap: 18px;
+    margin-top: 32px;
+    max-width: 720px;
+  }
+  .code {
+    display: flex;
+    gap: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .cd {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--brass-deep);
+    min-width: 3.2em;
+  }
+  .code p {
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+  .bignum {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 50px);
+    text-decoration: none;
+    display: block;
+    margin: 14px 0 4px;
+    color: var(--ink);
+  }
+  .disclaimer {
+    margin-top: 28px;
+    font-size: 14px;
+    color: var(--ink-3);
+    max-width: 60ch;
+  }
+</style>

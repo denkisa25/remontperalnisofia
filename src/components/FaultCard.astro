@@ -1,0 +1,23 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  body: string;
+  idx: string;
+  /** brass-wash fill, used for the "all about dryers" card */
+  tint?: boolean;
+}
+const { href, title, body, idx, tint = false } = Astro.props;
+---
+
+<a class:list={['card', { tint }]} {href}>
+  <h3>{title}</h3>
+  <p>{body}</p>
+  <span class="idx numeric">{idx}</span>
+</a>
+
+<style>
+  .tint {
+    background: var(--brass-wash);
+  }
+</style>

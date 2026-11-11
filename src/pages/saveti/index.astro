@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { site } from '../../data/site';
+import { getSaveti } from '../../lib/content';
+import { breadcrumbs } from '../../lib/schema';
+
+const saveti = await getSaveti();
+---
+
+<Base
+  title={`Съвети за перални и сушилни | ${site.name}`}
+  description="Практични съвети за поддръжка на перални и сушилни — филтри, почистване, избор на уред."
+  noindex={saveti.length === 0}
+  jsonLd={[
+    breadcrumbs([
+      { name: 'Начало', path: '/' },
+      { name: 'Съвети', path: '/saveti/' },
+    ]),
+  ]}
+>
+  <Hero
+    compact
+    eyebrow="Съвети"
+    lede="Практични съвети за поддръжка на перални и сушилни."
+  >
+    <Crumbs slot="crumbs" items={[{ name: 'Начало', href: '/' }, { name: 'Съвети' }]} />
+    <Fragment slot="title">Практични съвети</Fragment>
+  </Hero>
+
+  <section class="sec">
+    <div class="wrap">
+      {
+        saveti.length > 0 ? (
+          <div class="grid" style="margin-top:0">
+            {saveti.map((a) => <ArticleCard entry={a} />)}
+          </div>
+        ) : (
+          <div class="prose">
+            <p>Статиите се подготвят. Дотогава най-бързият начин да получите съвет е обаждане.</p>
+            <a class="btn btn-dark" href={site.phoneHref}>Обадете се: {site.phone}</a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base
+  title={`Страницата не е намерена | ${site.name}`}
+  description="Страницата не е намерена."
+  noindex
+>
+  <section class="sec">
+    <div class="wrap">
+      <span class="eyebrow numeric">404</span>
+      <h1>Тази страница не съществува</h1>
+      <p class="lede">
+        Може адресът да е променен. Ако търсите ремонт на пералня или сушилня, най-бързо е да се
+        обадите.
+      </p>
+      <p class="actions">
+        <a class="btn btn-primary" href={site.phoneHref}>Обадете се: {site.phone}</a>
+        <a href="/">Към началото →</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 {
+    font-size: var(--step-4);
+    margin-top: 14px;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    align-items: center;
+    margin-top: 28px;
+  }
+</style>

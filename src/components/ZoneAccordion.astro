@@ -1,0 +1,168 @@
+---
+/**
+ * Zone wheel + accordion. <details name="zone"> gives one-open-at-a-time with
+ * no JavaScript, and collapsed content is still in the HTML so it indexes.
+ * The wheel highlights the open zone with CSS :has() — also no JavaScript.
+ * Квартали are plain chips, not links: there is no page per квартал
+ * (CLAUDE.md §4).
+ */
+import { zones } from '../data/raioni';
+
+interface Props {
+  open?: string;
+}
+const { open = 'zapad' } = Astro.props;
+---
+
+<div class="zones">
+  <div class="zone-map">
+    <svg viewBox="0 0 320 300" role="img" aria-label="Схема на зоните на покритие в София">
+      <circle class="disc" cx="160" cy="150" r="140"></circle>
+      <path class="z z-sever" d="M160 150 L160 10 A140 140 0 0 1 259 51 Z"></path>
+      <path class="z z-iztok" d="M160 150 L259 51 A140 140 0 0 1 259 249 Z"></path>
+      <path class="z z-yug" d="M160 150 L259 249 A140 140 0 0 1 61 249 Z"></path>
+      <path class="z z-zapad" d="M160 150 L61 249 A140 140 0 0 1 61 51 Z"></path>
+      <path class="z z-sever" d="M160 150 L61 51 A140 140 0 0 1 160 10 Z"></path>
+      <circle class="z z-centar hub" cx="160" cy="150" r="52"></circle>
+      <text class="lbl big" x="160" y="155">ЦЕНТЪР</text>
+      <text class="lbl" x="160" y="52">СЕВЕР</text>
+      <text class="lbl" x="238" y="155">ИЗТОК</text>
+      <text class="lbl" x="160" y="246">ЮГ</text>
+      <text class="lbl" x="82" y="155">ЗАПАД</text>
+      <circle class="pin" cx="52" cy="128" r="7"></circle>
+      <text class="pin-t" x="52" y="112">БАНКЯ</text>
+    </svg>
+    <p class="cap">Схематично. Покритието включва всички райони на Столична община.</p>
+  </div>
+
+  <div class="zone-list">
+    {
+      zones.map((z) => (
+        <details class="zone" name="zone" data-zone={z.id} open={z.id === open}>
+          <summary>
+            <span class="nm">{z.name}</span>
+            <span class="ct">
+              {z.kvartali.length} {z.id === 'sela' ? 'МЕСТА' : 'КВАРТАЛА'}
+            </span>
+          </summary>
+          <ul class="kv">
+            {z.kvartali.map((k) => <li>{k}</li>)}
+          </ul>
+        </details>
+      ))
+    }
+  </div>
+</div>
+
+<style is:global>
+  .zones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    margin-top: 34px;
+    align-items: flex-start;
+  }
+  .zones .zone-map {
+    flex: 1 1 280px;
+    min-width: 0;
+    max-width: 340px;
+  }
+  .zones .zone-map svg {
+    width: 100%;
+    height: auto;
+  }
+  .zones .cap {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin-top: 10px;
+  }
+  .zones .zone-list {
+    flex: 999 1 520px;
+    min-width: 0;
+  }
+
+  /* wheel */
+  .zones .disc {
+    fill: var(--zone-disc);
+    stroke: var(--zone-edge);
+  }
+  .zones .z {
+    fill: var(--zone);
+  }
+  .zones .hub {
+    stroke: #fff;
+    stroke-width: 3;
+  }
+  .zones .lbl {
+    text-anchor: middle;
+    font-family: var(--font-display);
+    font-size: 13px;
+    fill: var(--ink-2);
+  }
+  .zones .lbl.big {
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .zones .pin {
+    fill: var(--brass);
+    stroke: #fff;
+    stroke-width: 2.5;
+  }
+  .zones .pin-t {
+    text-anchor: middle;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--brass-deep);
+  }
+  .zones:has(details[data-zone='centar'][open]) .z-centar,
+  .zones:has(details[data-zone='zapad'][open]) .z-zapad,
+  .zones:has(details[data-zone='iztok'][open]) .z-iztok,
+  .zones:has(details[data-zone='yug'][open]) .z-yug,
+  .zones:has(details[data-zone='sever'][open]) .z-sever {
+    fill: var(--zone-on);
+  }
+
+  /* accordion */
+  .zones details.zone {
+    border-bottom: 1px solid var(--line);
+  }
+  .zones details.zone summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 18px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .zones details.zone summary::-webkit-details-marker {
+    display: none;
+  }
+  .zones details.zone .nm {
+    font-family: var(--font-display);
+    font-size: 21px;
+    text-transform: uppercase;
+  }
+  .zones details.zone .ct {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--brass-deep);
+    white-space: nowrap;
+  }
+  .zones .kv {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 0 0 20px;
+  }
+  .zones .kv li {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 7px 13px;
+    border-radius: 3px;
+  }
+</style>

@@ -1,0 +1,48 @@
+---
+/**
+ * The perforated drum. Inline so it takes the tokens; the standalone files are
+ * public/logo.svg and public/logo-mono.svg.
+ * tone="light" — drum interior is brass-dark (on white header)
+ * tone="dark"  — drum interior is ink (on the dark footer)
+ */
+interface Props {
+  tone?: 'light' | 'dark';
+  size?: number;
+}
+const { tone = 'light', size = 40 } = Astro.props;
+---
+
+<svg
+  class={`logo logo--${tone}`}
+  viewBox="0 0 200 200"
+  width={size}
+  height={size}
+  aria-hidden="true"
+  focusable="false"
+>
+  <circle class="b" cx="100" cy="100" r="96"></circle>
+  <circle class="d" cx="100" cy="100" r="74"></circle>
+  <circle class="b" cx="100" cy="100" r="22"></circle>
+  <circle class="d" cx="100" cy="100" r="8"></circle>
+  <circle class="b" cx="100" cy="55" r="7"></circle>
+  <circle class="b" cx="139" cy="78" r="7"></circle>
+  <circle class="b" cx="139" cy="122" r="7"></circle>
+  <circle class="b" cx="100" cy="145" r="7"></circle>
+  <circle class="b" cx="61" cy="122" r="7"></circle>
+  <circle class="b" cx="61" cy="78" r="7"></circle>
+</svg>
+
+<style>
+  .logo {
+    flex-shrink: 0;
+  }
+  .b {
+    fill: var(--brass);
+  }
+  .logo--light .d {
+    fill: var(--brass-dark);
+  }
+  .logo--dark .d {
+    fill: var(--ink);
+  }
+</style>
