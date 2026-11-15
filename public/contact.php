@@ -237,7 +237,8 @@ if (!preg_match('/^(\+359|0)[1-9]\d{7,8}$/', $digits)) {
 // fail SPF and look like spoofing).
 $ctl      = static fn(string $s): string => trim((string)preg_replace('/[\x00-\x1f\x7f]+/', ' ', $s));
 $subject  = mb_encode_mimeheader('Запитване от сайта — ' . $ctl($name), 'UTF-8', 'B', "\r\n");
-$fromName = mb_encode_mimeheader('Сайт', 'UTF-8', 'B', "\r\n");
+// RFC 2047 encoded-word, so the Cyrillic display name is legal in a header
+$fromName = mb_encode_mimeheader('Ремонт Перални София', 'UTF-8', 'B', "\r\n");
 
 $body = implode("\n", [
     'Име:     ' . $name,

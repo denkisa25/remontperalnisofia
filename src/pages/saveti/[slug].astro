@@ -17,7 +17,13 @@ const { entry } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 const path = `/saveti/${entry.id}/`;
-const date = (x: Date) => x.toLocaleDateString('bg-BG', { year: 'numeric', month: 'long', day: 'numeric' });
+// Only the "updated" date is ever shown (month + year). `published` stays in the
+// frontmatter and in JSON-LD datePublished, but is never displayed. UTC so the
+// month cannot shift with the build machine's timezone.
+const updatedLabel = d.updated
+  ? `Актуализирана: ${d.updated.toLocaleDateString('bg-BG', { month: 'long', timeZone: 'UTC' })} ${d.updated.getUTCFullYear()}`
+  : '';
+const metaParts = [updatedLabel, d.readingMinutes ? `${d.readingMinutes} мин. четене` : ''].filter(Boolean);
 
 const article = {
   '@context': 'https://schema.org',
@@ -55,10 +61,17 @@ const article = {
 
   <section class="sec">
     <div class="wrap">
-      <p class="meta numeric">
-        <time datetime={d.published.toISOString().slice(0, 10)}>{date(d.published)}</time>
-        {d.readingMinutes && <span> · {d.readingMinutes} мин. четене</span>}
-      </p>
+      {
+        metaParts.length > 0 && (
+          <p class="meta numeric">
+            {d.updated ? (
+              <time datetime={d.updated.toISOString().slice(0, 10)}>{updatedLabel}</time>
+            ) : null}
+            {d.updated && d.readingMinutes ? ' · ' : ''}
+            {d.readingMinutes ? `${d.readingMinutes} мин. четене` : ''}
+          </p>
+        )
+      }
       <div class="prose"><Content /></div>
     </div>
   </section>
