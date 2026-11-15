@@ -8,6 +8,10 @@ declare(strict_types=1);
  * plugin was missing — every email lead was lost without a trace. So: no
  * dependencies, no plugins, and a failure is visible rather than silent.
  *
+ * Runs on the host's PHP 7.4 (checked: x-powered-by: PHP/7.4.33) — keep the syntax
+ * 7.4-compatible: no readonly, no constructor promotion, no `catch (E)` without a
+ * variable, no match/named args/nullsafe, no str_contains.
+ *
  * Mail goes out through the host's own SMTP server (authenticated, STARTTLS).
  * PHP's mail() was dropped: on this host it returned true and delivered nothing.
  *
@@ -39,7 +43,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     exit;
 }
 
-function fail(int $code, string $key): never {
+function fail(int $code, string $key) {
+    // never returns (exits)
     http_response_code($code);
     echo json_encode(['ok' => false, 'error' => $key], JSON_UNESCAPED_UNICODE);
     exit;
@@ -62,9 +67,15 @@ function log_failure(string $ip, string $name, string $detail): void {
 
 /** A step that did not get the reply it needed. Carries every reply line for the log. */
 final class SmtpFailure extends RuntimeException {
-    /** @param list<string> $lines */
-    public function __construct(public readonly string $step, public readonly array $lines) {
+    /** @var string */
+    public $step;
+    /** @var string[] every reply line, for the log */
+    public $lines;
+
+    public function __construct(string $step, array $lines) {
         parent::__construct($step . ': ' . implode(' | ', $lines));
+        $this->step  = $step;
+        $this->lines = $lines;
     }
 }
 
@@ -111,8 +122,11 @@ function smtp_credentials(): ?array {
         return null;
     }
     try {
-        $c = (static fn() => include SMTP_CREDENTIALS)();
-    } catch (Throwable) {
+        $load = static function () {
+            return include SMTP_CREDENTIALS;
+        };
+        $c = $load();
+    } catch (Throwable $e) {
         return null;
     }
     if (!is_array($c) || !is_string($c['user'] ?? null) || !is_string($c['pass'] ?? null)
