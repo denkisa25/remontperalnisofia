@@ -104,7 +104,9 @@ $headers = implode("\r\n", [
     'MIME-Version: 1.0',
 ]);
 
-$sent = mail(TO_ADDRESS, $subject, $body, $headers);
+// -f sets the envelope sender (Return-Path), so SPF/DMARC align with our own
+// domain instead of the server's default sender.
+$sent = mail(TO_ADDRESS, $subject, $body, $headers, '-f no-reply@remontperalnisofia.com');
 
 if (!$sent) {
     // Visible failure: log it so a dead form is noticed in days, not years.
