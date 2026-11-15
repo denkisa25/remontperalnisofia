@@ -8,14 +8,27 @@ declare(strict_types=1);
  * plugin was missing — every email lead was lost without a trace. So: no
  * dependencies, no plugins, and a failure is visible rather than silent.
  *
+ * Mail goes out through the host's own SMTP server (authenticated, STARTTLS).
+ * PHP's mail() was dropped: on this host it returned true and delivered nothing.
+ *
  * The phone is the real conversion. This is a backup channel.
  */
 
 const TO_ADDRESS   = 'info@remontperalnisofia.com';
+const FROM_ADDRESS = 'info@remontperalnisofia.com'; // header From AND envelope sender
 const MIN_SECONDS  = 3;       // a human cannot fill this in faster
 const MAX_PER_HOUR = 5;       // per IP
+
 // Outside the web root on purpose: failures.log holds visitor IPs and names.
 const LOG_DIR      = '/home/kickstic/contact-log';
+
+// SMTP. Credentials live OUTSIDE the repo and the web root:
+//   /home/kickstic/contact-smtp.php   <?php return ['user' => '...', 'pass' => '...'];
+const SMTP_HOST        = 'localhost';
+const SMTP_PORT        = 587;
+const SMTP_TIMEOUT     = 15;
+const SMTP_CREDENTIALS = '/home/kickstic/contact-smtp.php';
+const SMTP_EHLO_NAME   = 'remontperalnisofia.com';
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -30,6 +43,130 @@ function fail(int $code, string $key): never {
     http_response_code($code);
     echo json_encode(['ok' => false, 'error' => $key], JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+/** One line per event in failures.log: time, IP, name, detail. No credentials, ever. */
+function log_failure(string $ip, string $name, string $detail): void {
+    $clean = static fn(string $s): string => trim((string)preg_replace('/[\x00-\x1f\x7f]+/', ' ', $s));
+    if (!is_dir(LOG_DIR)) {
+        @mkdir(LOG_DIR, 0750, true);
+    }
+    @file_put_contents(
+        LOG_DIR . '/failures.log',
+        implode("\t", [date('c'), $ip, $clean($name), $clean($detail)]) . "\n",
+        FILE_APPEND | LOCK_EX
+    );
+}
+
+// --- SMTP client -----------------------------------------------------------
+
+/** A step that did not get the reply it needed. Carries every reply line for the log. */
+final class SmtpFailure extends RuntimeException {
+    /** @param list<string> $lines */
+    public function __construct(public readonly string $step, public readonly array $lines) {
+        parent::__construct($step . ': ' . implode(' | ', $lines));
+    }
+}
+
+/** Reads one (possibly multi-line) reply. Returns [code, lines]; code 0 = nothing usable. */
+function smtp_read($fp): array {
+    $lines = [];
+    $code  = 0;
+    while (($raw = fgets($fp, 2048)) !== false) {
+        $line    = rtrim($raw, "\r\n");
+        $lines[] = $line;
+        if (!preg_match('/^(\d{3})([ -])/', $line, $m)) {
+            $code = 0;
+            break;
+        }
+        $code = (int)$m[1];
+        if ($m[2] === ' ') {
+            break; // last line of the reply
+        }
+    }
+    if ($lines === []) {
+        $meta    = stream_get_meta_data($fp);
+        $lines[] = !empty($meta['timed_out']) ? '(timed out waiting for the server)' : '(connection closed, no reply)';
+    }
+    return [$code, $lines];
+}
+
+/**
+ * Sends $command (null = only read, e.g. the greeting) and requires one of
+ * $ok codes. Anything else — including every 4xx/5xx — throws with all reply lines.
+ */
+function smtp_cmd($fp, ?string $command, array $ok, string $step): void {
+    if ($command !== null && fwrite($fp, $command . "\r\n") === false) {
+        throw new SmtpFailure($step, ['(write to server failed)']);
+    }
+    [$code, $lines] = smtp_read($fp);
+    if (!in_array($code, $ok, true)) {
+        throw new SmtpFailure($step, $lines);
+    }
+}
+
+/** @return array{user:string,pass:string}|null */
+function smtp_credentials(): ?array {
+    if (!is_readable(SMTP_CREDENTIALS)) {
+        return null;
+    }
+    try {
+        $c = (static fn() => include SMTP_CREDENTIALS)();
+    } catch (Throwable) {
+        return null;
+    }
+    if (!is_array($c) || !is_string($c['user'] ?? null) || !is_string($c['pass'] ?? null)
+        || $c['user'] === '' || $c['pass'] === '') {
+        return null;
+    }
+    return ['user' => $c['user'], 'pass' => $c['pass']];
+}
+
+/**
+ * localhost:587, STARTTLS, AUTH LOGIN. Throws SmtpFailure on any problem.
+ * $message is the complete RFC 5322 message (headers + body), CRLF line endings,
+ * no line starting with "." (the body is base64, so dot-stuffing is not needed).
+ */
+function smtp_send(array $cred, string $message): void {
+    // The connection never leaves this machine (loopback to the host's own MTA),
+    // whose certificate is issued for the server's hostname, not "localhost" —
+    // so peer verification is switched off for this one connection.
+    $ctx = stream_context_create(['ssl' => [
+        'verify_peer'       => false,
+        'verify_peer_name'  => false,
+        'allow_self_signed' => true,
+    ]]);
+    $fp = @stream_socket_client(
+        'tcp://' . SMTP_HOST . ':' . SMTP_PORT, $errno, $errstr, SMTP_TIMEOUT, STREAM_CLIENT_CONNECT, $ctx
+    );
+    if ($fp === false) {
+        throw new SmtpFailure('connect', ["cannot connect to " . SMTP_HOST . ':' . SMTP_PORT . " [$errno] $errstr"]);
+    }
+    stream_set_timeout($fp, SMTP_TIMEOUT);
+
+    try {
+        smtp_cmd($fp, null, [220], 'greeting');
+        smtp_cmd($fp, 'EHLO ' . SMTP_EHLO_NAME, [250], 'EHLO');
+        smtp_cmd($fp, 'STARTTLS', [220], 'STARTTLS');
+        if (stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) !== true) {
+            throw new SmtpFailure('STARTTLS', ['TLS handshake failed']);
+        }
+        smtp_cmd($fp, 'EHLO ' . SMTP_EHLO_NAME, [250], 'EHLO after STARTTLS');
+
+        // The commands below carry credentials: they are never logged, only the server's replies.
+        smtp_cmd($fp, 'AUTH LOGIN', [334], 'AUTH LOGIN');
+        smtp_cmd($fp, base64_encode($cred['user']), [334], 'AUTH user');
+        smtp_cmd($fp, base64_encode($cred['pass']), [235], 'AUTH pass');
+
+        smtp_cmd($fp, 'MAIL FROM:<' . FROM_ADDRESS . '>', [250], 'MAIL FROM');
+        smtp_cmd($fp, 'RCPT TO:<' . TO_ADDRESS . '>', [250, 251], 'RCPT TO');
+        smtp_cmd($fp, 'DATA', [354], 'DATA');
+        smtp_cmd($fp, $message . "\r\n.", [250], 'end of DATA');
+
+        @fwrite($fp, "QUIT\r\n");
+    } finally {
+        @fclose($fp);
+    }
 }
 
 // --- bot checks ------------------------------------------------------------
@@ -80,10 +217,13 @@ if (!preg_match('/^(\+359|0)[1-9]\d{7,8}$/', $digits)) {
 }
 
 // --- send ------------------------------------------------------------------
-// Everything below goes into headers or the body as literal text. Nothing is
-// echoed back into a page, and the From address is ours, never the submitter's
-// (that would fail SPF and look like spoofing).
-$subject = '=?UTF-8?B?' . base64_encode('Запитване от сайта — ' . $name) . '?=';
+// Everything the visitor typed goes into the base64 body or an RFC 2047-encoded
+// Subject, never raw into a header, so it cannot inject headers. Nothing is
+// echoed back into a page, and From is ours, never the submitter's (that would
+// fail SPF and look like spoofing).
+$ctl      = static fn(string $s): string => trim((string)preg_replace('/[\x00-\x1f\x7f]+/', ' ', $s));
+$subject  = mb_encode_mimeheader('Запитване от сайта — ' . $ctl($name), 'UTF-8', 'B', "\r\n");
+$fromName = mb_encode_mimeheader('Сайт', 'UTF-8', 'B', "\r\n");
 
 $body = implode("\n", [
     'Име:     ' . $name,
@@ -97,24 +237,32 @@ $body = implode("\n", [
     'Време:   ' . date('Y-m-d H:i:s'),
 ]);
 
-$headers = implode("\r\n", [
-    'From: Сайт <no-reply@remontperalnisofia.com>',
-    'Reply-To: ' . TO_ADDRESS,
-    'Content-Type: text/plain; charset=UTF-8',
+$raw = implode("\r\n", [
+    'Date: ' . date('r'),
+    'From: ' . $fromName . ' <' . FROM_ADDRESS . '>',
+    'To: ' . TO_ADDRESS,
+    'Subject: ' . $subject,
+    'Message-ID: <' . bin2hex(random_bytes(12)) . '@remontperalnisofia.com>',
     'MIME-Version: 1.0',
-]);
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+]) . "\r\n\r\n" . rtrim(chunk_split(base64_encode($body), 76, "\r\n"), "\r\n") . "\r\n";
 
-// -f sets the envelope sender (Return-Path), so SPF/DMARC align with our own
-// domain instead of the server's default sender.
-$sent = mail(TO_ADDRESS, $subject, $body, $headers, '-f no-reply@remontperalnisofia.com');
+$cred = smtp_credentials();
+if ($cred === null) {
+    // Visible failure: a dead form must be noticed in days, not years.
+    log_failure($ip, $name, 'SMTP credentials file missing or invalid: ' . SMTP_CREDENTIALS);
+    fail(500, 'send');
+}
 
-if (!$sent) {
-    // Visible failure: log it so a dead form is noticed in days, not years.
-    @file_put_contents(
-        LOG_DIR . '/failures.log',
-        date('c') . "\t" . $ip . "\t" . str_replace("\n", ' ', $name) . "\n",
-        FILE_APPEND | LOCK_EX
-    );
+try {
+    // trailing "\r\n" of $raw + ".\r\n" terminator is added by smtp_cmd as "\r\n."
+    smtp_send($cred, rtrim($raw, "\r\n"));
+} catch (SmtpFailure $e) {
+    // every reply line of the failing step, one log row each — no credentials
+    foreach ($e->lines as $line) {
+        log_failure($ip, $name, 'SMTP ' . $e->step . ': ' . $line);
+    }
     fail(500, 'send');
 }
 

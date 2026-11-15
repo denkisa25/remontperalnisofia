@@ -11,3 +11,6 @@ public/contact-log/
 *.sql
 # bundles already unpacked into the repo
 *.zip
+
+# SMTP credentials must never be committed (they live outside the repo on the server)
+contact-smtp.php

@@ -224,8 +224,10 @@ no reason to add a third-party form service (and no GDPR processor agreement to
 sign).
 
 Must have: honeypot field, submission-timestamp check (reject < 3s), simple
-per-IP rate limit, server-side validation, `mail()` to
-`info@remontperalnisofia.com`. Never echo user input back into the page. Log
+per-IP rate limit, server-side validation, mail sent
+to `info@remontperalnisofia.com` over authenticated SMTP (localhost:587, STARTTLS;
+credentials in `/home/kickstic/contact-smtp.php`, outside the repo and web root —
+PHP `mail()` returned true on this host and delivered nothing). Never echo user input back into the page. Log
 send failures — the old form died silently for years and nobody noticed.
 
 The form is a backup channel. **The phone is the conversion.** Every page keeps

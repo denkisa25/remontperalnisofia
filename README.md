@@ -34,6 +34,19 @@ Repo secrets required (Settings -> Secrets and variables -> Actions):
 Generate a deploy key with `ssh-keygen -t ed25519 -C "gh-deploy"` and add the
 public half in cPanel -> SSH Access -> Manage SSH Keys -> Authorize.
 
+## Contact form credentials (not in the repo)
+
+`public/contact.php` sends through the host's SMTP server. Create this file on the
+server, outside the web root, never in git:
+
+```php
+<?php // /home/kickstic/contact-smtp.php
+return ['user' => 'info@remontperalnisofia.com', 'pass' => '...'];
+```
+
+If it is missing or wrong, the form returns an error and the reason is written to
+`/home/kickstic/contact-log/failures.log`.
+
 ## Before launch
 
 - [ ] Legacy 301 map — done in `public/.htaccess`; `npm run build && npm run check:redirects` must pass (needs the `/saveti/` articles un-drafted)
