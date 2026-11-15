@@ -113,12 +113,13 @@ export const site = {
   hoursNote: 'Работим и през почивните дни по предварителна уговорка.',
 
   analytics: {
-    // GA4 measurement ID, "G-XXXXXXXXXX". Empty = no consent banner and nothing
-    // is loaded from Google (nothing to consent to).
-    ga4: '',
+    // GA4 measurement ID. Runs under Google Consent Mode v2: all four consent
+    // signals default to denied, granted only when the visitor accepts.
+    // Empty = no consent banner and nothing is loaded from Google.
+    ga4: 'G-SWVNVTCJP7',
     // Search Console HTML-tag verification token (content="…"). Empty = omitted.
     searchConsole: '',
-    // fires on every tel: click, once the visitor has accepted analytics
+    // fires on every tel: click (Google applies the visitor's consent state)
     telConversionEvent: 'call_click',
   },
 } as const;

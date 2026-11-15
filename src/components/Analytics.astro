@@ -1,13 +1,21 @@
 ---
 /**
- * GA4 behind a consent gate. When site.analytics.ga4 is empty no banner is
- * rendered and nothing is ever requested from Google (the bundled script finds
- * no #consent element and returns — there is nothing to consent to).
+ * GA4 with Google Consent Mode v2 ("advanced" mode).
  *
- * Nothing loads from Google until the visitor presses "Приемам". Choice is kept
- * in localStorage under `rps-consent`. After consent, every tel: click sends
- * the conversion event (site.analytics.telConversionEvent) — one delegated
- * listener, so it covers every call link on every page.
+ * On every page, BEFORE the GA4 tag is loaded, consent is set to
+ *   ad_storage, analytics_storage, ad_user_data, ad_personalization = denied
+ * "Приемам" updates all four to granted; "Отказвам" leaves them denied. The
+ * choice is kept in localStorage (`rps-consent`) and replayed as
+ * default(denied) -> update(granted) on later visits, still before the tag loads.
+ *
+ * While denied, the tag sends cookieless pings and stores nothing on the device.
+ * The privacy and cookie pages describe exactly this — keep them in sync.
+ *
+ * Every tel: click sends the conversion event (site.analytics.telConversionEvent)
+ * in either state; Google applies the current consent state to it.
+ *
+ * When site.analytics.ga4 is empty no banner is rendered and nothing is ever
+ * requested from Google (the bundled script finds no #consent element).
  */
 import { site } from '../data/site';
 const { ga4, telConversionEvent } = site.analytics;
@@ -18,8 +26,8 @@ const { ga4, telConversionEvent } = site.analytics;
     <div id="consent" data-ga4={ga4} data-event={telConversionEvent}>
       <section class="banner" aria-label="Бисквитки" hidden>
         <p>
-          Използваме Google Analytics, за да видим кои страници помагат и колко
-          обаждания идват от сайта. Включва се само ако се съгласите.
+          Използваме Google Analytics и измерване на рекламите на Google, за да видим кои страници
+          помагат и колко обаждания идват от сайта. Ако откажете, не се записват бисквитки.
           <a href="/biskvitki/">Подробности</a>
         </p>
         <div class="actions">
@@ -82,7 +90,8 @@ const { ga4, telConversionEvent } = site.analytics;
       dataLayer: unknown[];
       gtag: (...a: unknown[]) => void;
     };
-    let loaded = false;
+    const SIGNALS = ['ad_storage', 'analytics_storage', 'ad_user_data', 'ad_personalization'];
+    const state = (v: 'granted' | 'denied') => Object.fromEntries(SIGNALS.map((k) => [k, v]));
 
     const read = () => {
       try {
@@ -100,26 +109,29 @@ const { ga4, telConversionEvent } = site.analytics;
       }
     };
 
-    const load = () => {
-      if (loaded) return;
-      loaded = true;
-      w.dataLayer = w.dataLayer || [];
-      // gtag.js requires the real `arguments` object, not an array
-      w.gtag = function () {
-        // eslint-disable-next-line prefer-rest-params
-        w.dataLayer.push(arguments);
-      };
-      w.gtag('js', new Date());
-      w.gtag('config', id);
-      const s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
-      document.head.appendChild(s);
+    // 1. dataLayer + gtag, then consent DEFAULT = denied — before anything else
+    w.dataLayer = w.dataLayer || [];
+    // gtag.js requires the real `arguments` object, not an array
+    w.gtag = function () {
+      // eslint-disable-next-line prefer-rest-params
+      w.dataLayer.push(arguments);
     };
+    w.gtag('consent', 'default', state('denied'));
 
-    // every tel: link, any page, one listener
+    // 2. returning visitor who already accepted: update straight away, still before the tag loads
+    const choice = read();
+    if (choice === 'granted') w.gtag('consent', 'update', state('granted'));
+
+    // 3. only now load the GA4 tag
+    w.gtag('js', new Date());
+    w.gtag('config', id);
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+    document.head.appendChild(s);
+
+    // every tel: link, any page, one listener — fires in either consent state
     document.addEventListener('click', (e) => {
-      if (!loaded) return;
       const a = (e.target as Element | null)?.closest?.('a[href^="tel:"]');
       if (!a) return;
       w.gtag('event', eventName, {
@@ -130,28 +142,26 @@ const { ga4, telConversionEvent } = site.analytics;
     });
 
     const banner = root.querySelector<HTMLElement>('.banner')!;
-    const choice = read();
-    if (choice === 'granted') load();
-    else if (choice === null) banner.hidden = false;
+    if (choice === null) banner.hidden = false;
 
     banner.addEventListener('click', (e) => {
       const b = (e.target as Element).closest<HTMLElement>('[data-consent]');
       if (!b) return;
-      const v = b.dataset.consent as string;
+      const v = b.dataset.consent === 'granted' ? 'granted' : 'denied';
       write(v);
       banner.hidden = true;
-      if (v === 'granted') load();
+      w.gtag('consent', 'update', state(v));
     });
 
     // "change my choice" button on /biskvitki/
     document.querySelectorAll<HTMLElement>('[data-consent-reset]').forEach((btn) => {
       btn.addEventListener('click', () => {
         write(null);
-        // best-effort removal of GA cookies (_ga, _ga_<id>) on this host and its parent
+        // best-effort removal of Google cookies (_ga, _ga_<id>, _gcl_*) on this host and its parent
         const host = location.hostname.split('.').slice(-2).join('.');
         document.cookie.split(';').forEach((c) => {
           const n = c.split('=')[0].trim();
-          if (n.startsWith('_ga')) {
+          if (n.startsWith('_ga') || n.startsWith('_gcl')) {
             for (const d of [location.hostname, '.' + host]) {
               document.cookie = `${n}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${d}`;
             }

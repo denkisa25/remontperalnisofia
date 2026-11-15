@@ -30,10 +30,51 @@ const analytics = Boolean(site.analytics.ga4);
           analytics ? (
             <>
               <p>
-                Сайтът не поставя бисквитки, докато не приемете. Ако натиснете „Приемам“, се зарежда
-                Google Analytics 4 и Google записва в браузъра ви бисквитки за разпознаване на
-                посещенията.
+                Сайтът използва Google Analytics 4 със Google Consent Mode v2. При всяко зареждане
+                четирите сигнала за съгласие са „отказани“, преди да се зареди тагът на Google.
               </p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Сигнал</th>
+                    <th>За какво</th>
+                    <th>Преди избор и при „Отказвам“</th>
+                    <th>При „Приемам“</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td data-label="Сигнал" class="numeric">analytics_storage</td>
+                    <td data-label="За какво">бисквитки за анализ на посещенията</td>
+                    <td data-label="Преди избор и при „Отказвам“">отказан</td>
+                    <td data-label="При „Приемам“">разрешен</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Сигнал" class="numeric">ad_storage</td>
+                    <td data-label="За какво">бисквитки за реклама</td>
+                    <td data-label="Преди избор и при „Отказвам“">отказан</td>
+                    <td data-label="При „Приемам“">разрешен</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Сигнал" class="numeric">ad_user_data</td>
+                    <td data-label="За какво">изпращане на потребителски данни към Google за реклама</td>
+                    <td data-label="Преди избор и при „Отказвам“">отказан</td>
+                    <td data-label="При „Приемам“">разрешен</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Сигнал" class="numeric">ad_personalization</td>
+                    <td data-label="За какво">персонализирана реклама</td>
+                    <td data-label="Преди избор и при „Отказвам“">отказан</td>
+                    <td data-label="При „Приемам“">разрешен</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>
+                Докато сигналите са „отказани“, тагът на Google се зарежда, но не записва бисквитки в
+                устройството ви. Google получава ограничени заявки без бисквитки, които съдържат
+                технически данни като IP адрес и данни за браузъра.
+              </p>
+              <p>След „Приемам“ Google може да запише следните бисквитки:</p>
               <table>
                 <thead>
                   <tr>
@@ -44,14 +85,19 @@ const analytics = Boolean(site.analytics.ga4);
                 </thead>
                 <tbody>
                   <tr>
-                    <td class="numeric">_ga</td>
-                    <td>различава посетителите (Google Analytics)</td>
-                    <td>до 2 години</td>
+                    <td data-label="Име" class="numeric">_ga</td>
+                    <td data-label="За какво">различава посетителите (Google Analytics)</td>
+                    <td data-label="Срок">до 2 години</td>
                   </tr>
                   <tr>
-                    <td class="numeric">_ga_*</td>
-                    <td>запазва състоянието на сесията (Google Analytics)</td>
-                    <td>до 2 години</td>
+                    <td data-label="Име" class="numeric">_ga_*</td>
+                    <td data-label="За какво">запазва състоянието на сесията (Google Analytics)</td>
+                    <td data-label="Срок">до 2 години</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Име" class="numeric">_gcl_*</td>
+                    <td data-label="За какво">измерване на рекламите, ако Google Analytics е свързан с Google Ads</td>
+                    <td data-label="Срок">определя Google</td>
                   </tr>
                 </tbody>
               </table>
@@ -95,5 +141,41 @@ const analytics = Boolean(site.analytics.ga4);
     font-size: 14px;
     font-weight: 500;
     color: var(--ink-3);
+  }
+  /* narrow screens: each row becomes a labelled block instead of overflowing */
+  @media (max-width: 720px) {
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    table,
+    tbody,
+    tr,
+    td {
+      display: block;
+    }
+    tr {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    td {
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+    td:last-child {
+      border-bottom: 0;
+    }
+    td::before {
+      content: attr(data-label);
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--ink-3);
+      margin-bottom: 2px;
+    }
   }
 </style>
