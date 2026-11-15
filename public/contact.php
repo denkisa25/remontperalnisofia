@@ -14,7 +14,8 @@ declare(strict_types=1);
 const TO_ADDRESS   = 'info@remontperalnisofia.com';
 const MIN_SECONDS  = 3;       // a human cannot fill this in faster
 const MAX_PER_HOUR = 5;       // per IP
-const LOG_DIR      = __DIR__ . '/contact-log';
+// Outside the web root on purpose: failures.log holds visitor IPs and names.
+const LOG_DIR      = '/home/kickstic/contact-log';
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');

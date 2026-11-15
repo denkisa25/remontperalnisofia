@@ -28,7 +28,8 @@ Repo secrets required (Settings -> Secrets and variables -> Actions):
 | `CPANEL_HOST` | hostname or IP |
 | `CPANEL_USER` | cPanel SSH user |
 | `CPANEL_SSH_KEY` | private key, full PEM including header/footer |
-| `CPANEL_PATH` | e.g. `/home/<user>/public_html` |
+| `CPANEL_PORT` | SSH port; optional, defaults to 22 (this host uses 12545) |
+| `CPANEL_PATH` | target directory, e.g. `/home/<user>/public_html/<domain>` for an addon domain |
 
 Generate a deploy key with `ssh-keygen -t ed25519 -C "gh-deploy"` and add the
 public half in cPanel -> SSH Access -> Manage SSH Keys -> Authorize.

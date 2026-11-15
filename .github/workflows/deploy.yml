@@ -15,9 +15,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -43,26 +43,54 @@ jobs:
       - name: Check legacy redirect targets resolve
         run: npm run check:redirects
 
+      # Secrets go through env:, never inline ${{ }} inside run: (no shell injection,
+      # no accidental echo into the log).
       - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          HOST: ${{ secrets.CPANEL_HOST }}
+          PORT: ${{ secrets.CPANEL_PORT }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "${{ secrets.CPANEL_HOST }}" >> ~/.ssh/known_hosts
+          set -euo pipefail
+          PORT="${PORT:-22}"
+          [ -n "${HOST:-}" ] || { echo "::error::CPANEL_HOST secret is empty"; exit 1; }
+          [ -n "${SSH_KEY:-}" ] || { echo "::error::CPANEL_SSH_KEY secret is empty"; exit 1; }
+          [[ "$PORT" =~ ^[0-9]+$ ]] || { echo "::error::CPANEL_PORT must be a number, got '$PORT'"; exit 1; }
 
-      # --delete keeps the remote clean, but public_html also holds files the
-      # build does not produce (contact.php logs, cPanel's own cgi-bin).
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          keys=$(ssh-keyscan -p "$PORT" -H "$HOST" 2>/dev/null || true)
+          if [ -z "$keys" ]; then
+            echo "::error::ssh-keyscan got no host key from $HOST on port $PORT. Check CPANEL_HOST and CPANEL_PORT, and that the host accepts SSH from GitHub's runners."
+            exit 1
+          fi
+          printf '%s\n' "$keys" >> ~/.ssh/known_hosts
+
+      # --delete keeps the remote clean, but the target directory can also hold
+      # files the build does not produce (cPanel's own cgi-bin, .well-known).
       # Exclude them explicitly or they get wiped on every deploy.
+      # (contact.php logs now live outside the web root: /home/kickstic/contact-log.)
       - name: Deploy
+        env:
+          HOST: ${{ secrets.CPANEL_HOST }}
+          PORT: ${{ secrets.CPANEL_PORT }}
+          SSH_USER: ${{ secrets.CPANEL_USER }}
+          DEST: ${{ secrets.CPANEL_PATH }}
         run: |
+          set -euo pipefail
+          PORT="${PORT:-22}"
+          [ -n "${DEST:-}" ] || { echo "::error::CPANEL_PATH secret is empty"; exit 1; }
           rsync -avz --delete \
             --exclude '.well-known/' \
             --exclude 'cgi-bin/' \
             --exclude '.htpasswd' \
             --exclude 'contact-log/' \
-            -e "ssh -i ~/.ssh/id_ed25519 -p 22" \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $PORT" \
             dist/ \
-            "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:${{ secrets.CPANEL_PATH }}"
+            "$SSH_USER@$HOST:$DEST"
 
       - name: Clean up key
         if: always()
