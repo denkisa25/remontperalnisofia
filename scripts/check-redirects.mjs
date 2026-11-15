@@ -1,5 +1,8 @@
-// Every 301 target in public/.htaccess must resolve to a real page in dist/.
-// A 301 into a 404 is worse than no redirect (CLAUDE.md §7).
+// 1. Every 301 target in public/.htaccess must resolve to a real page in dist/.
+//    A 301 into a 404 is worse than no redirect (CLAUDE.md §7).
+// 2. docs/legacy-import/url-map.json (the audit trail) must agree with the rules:
+//    for each entry the effective target is `currentTarget` when present, else
+//    `target`; the matching RedirectMatch rule must point there, and it must resolve.
 //   npm run build && npm run check:redirects
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -27,10 +30,30 @@ for (const r of rules) {
   if (!ok) bad++;
   console.log(`${ok ? 'ok  ' : 'FAIL'}  ${decodeURIComponent(r.from).padEnd(56)} -> ${r.to}`);
 }
-console.log(`\n${rules.length - bad}/${rules.length} redirect targets resolve in dist/`);
+const ruleBad = bad;
+console.log(`\n${rules.length - ruleBad}/${rules.length} .htaccess redirect targets resolve in dist/`);
+// ---- url-map.json vs .htaccess ----
+const map = JSON.parse(readFileSync(new URL('../docs/legacy-import/url-map.json', import.meta.url), 'utf8'));
+let mapBad = 0;
+console.log('\nurl-map.json vs .htaccess:');
+for (const e of map) {
+  const effective = e.currentTarget ?? e.target;
+  const slug = decodeURIComponent(e.old_url).replace(/^\/|\/$/g, '');
+  const rule = rules.find((r) => r.kind === 'RedirectMatch' && decodeURIComponent(r.from) === `^/${slug}/?$`);
+  let problem = '';
+  if (!rule) problem = 'no RedirectMatch rule for this old URL';
+  else if (rule.to !== effective) problem = `rule points to ${rule.to}, map says ${effective}`;
+  else if (!resolves(effective)) problem = `${effective} does not exist in dist/`;
+  if (problem) mapBad++;
+  const tag = e.currentTarget ? `  (currentTarget; original ${e.target})` : '';
+  console.log(`${problem ? 'FAIL' : 'ok  '}  ${slug.padEnd(48)} -> ${effective}${tag}${problem ? '   !! ' + problem : ''}`);
+}
+console.log(`${map.length - mapBad}/${map.length} url-map entries agree with .htaccess and resolve`);
+bad += mapBad;
+
 if (bad) {
   console.error(
-    `${bad} target(s) do not exist. Targets under /saveti/ exist only once the article is no longer draft: true.`,
+    `${bad} problem(s). Targets under /saveti/ exist only once the article is no longer draft: true.`,
   );
   process.exit(1);
 }

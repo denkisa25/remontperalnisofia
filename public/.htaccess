@@ -58,13 +58,15 @@ Redirect 301 /category/ /saveti/
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # https
-  RewriteCond %{HTTPS} !=on
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-
-  # strip www
+  # www -> bare domain, and always https, in ONE redirect. This rule must come
+  # first: if the generic http->https rule ran first, http://www.x/ would take
+  # two hops (http->https, then www->bare).
   RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
   RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # http -> https (bare host)
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
   # Astro builds directory-style URLs; serve index.html for /path/
   RewriteCond %{REQUEST_FILENAME} -d
