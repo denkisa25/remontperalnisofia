@@ -5,7 +5,8 @@ import Crumbs from '../components/Crumbs.astro';
 import { site } from '../data/site';
 import { breadcrumbs } from '../lib/schema';
 
-const analytics = Boolean(site.analytics.ga4);
+const analytics = Boolean(site.analytics.ga4 || site.analytics.gtm);
+const gtm = Boolean(site.analytics.gtm);
 ---
 
 <Base
@@ -32,6 +33,9 @@ const analytics = Boolean(site.analytics.ga4);
               <p>
                 Сайтът използва Google Analytics 4 със Google Consent Mode v2. При всяко зареждане
                 четирите сигнала за съгласие са „отказани“, преди да се зареди тагът на Google.
+                {gtm
+                  ? ' Същото важи за Google Tag Manager, чрез който се управляват таговете на Google (Analytics и Google Ads): той се зарежда след отказаните сигнали, сам не записва бисквитки, а таговете на Google в него спазват избора ви.'
+                  : ''}
               </p>
               <table>
                 <thead>

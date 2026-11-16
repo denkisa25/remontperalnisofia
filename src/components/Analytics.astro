@@ -1,12 +1,12 @@
 ---
 /**
- * GA4 with Google Consent Mode v2 ("advanced" mode).
+ * GA4 and Google Tag Manager with Google Consent Mode v2 ("advanced" mode).
  *
- * On every page, BEFORE the GA4 tag is loaded, consent is set to
+ * On every page, BEFORE the GA4 tag or the GTM container is loaded, consent is set to
  *   ad_storage, analytics_storage, ad_user_data, ad_personalization = denied
  * "Приемам" updates all four to granted; "Отказвам" leaves them denied. The
  * choice is kept in localStorage (`rps-consent`) and replayed as
- * default(denied) -> update(granted) on later visits, still before the tag loads.
+ * default(denied) -> update(granted) on later visits, still before anything loads.
  *
  * While denied, the tag sends cookieless pings and stores nothing on the device.
  * The privacy and cookie pages describe exactly this — keep them in sync.
@@ -14,16 +14,19 @@
  * Every tel: click sends the conversion event (site.analytics.telConversionEvent)
  * in either state; Google applies the current consent state to it.
  *
- * When site.analytics.ga4 is empty no banner is rendered and nothing is ever
+ * GTM: Google's own tags inside the container honour these signals; third-party
+ * tags need "additional consent checks" set in the container itself.
+ *
+ * When site.analytics.ga4 and .gtm are both empty no banner is rendered and nothing is ever
  * requested from Google (the bundled script finds no #consent element).
  */
 import { site } from '../data/site';
-const { ga4, telConversionEvent } = site.analytics;
+const { ga4, gtm, telConversionEvent } = site.analytics;
 ---
 
 {
-  ga4 && (
-    <div id="consent" data-ga4={ga4} data-event={telConversionEvent}>
+  (ga4 || gtm) && (
+    <div id="consent" data-ga4={ga4} data-gtm={gtm} data-event={telConversionEvent}>
       <section class="banner" aria-label="Бисквитки" hidden>
         <p>
           Използваме Google Analytics и измерване на рекламите на Google, за да видим кои страници
@@ -83,7 +86,8 @@ const { ga4, telConversionEvent } = site.analytics;
 <script>
   const root = document.getElementById('consent');
   if (root) {
-    const id = root.dataset.ga4 as string;
+    const id = root.dataset.ga4 as string; // may be ''
+    const gtmId = root.dataset.gtm as string; // may be ''
     const eventName = root.dataset.event as string;
     const KEY = 'rps-consent';
     const w = window as unknown as {
@@ -122,13 +126,23 @@ const { ga4, telConversionEvent } = site.analytics;
     const choice = read();
     if (choice === 'granted') w.gtag('consent', 'update', state('granted'));
 
-    // 3. only now load the GA4 tag
+    // 3. only now load Google's tags
     w.gtag('js', new Date());
-    w.gtag('config', id);
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
-    document.head.appendChild(s);
+    if (id) {
+      w.gtag('config', id);
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+      document.head.appendChild(s);
+    }
+    if (gtmId) {
+      // standard GTM bootstrap (gtm.start event, then the container)
+      w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      const g = document.createElement('script');
+      g.async = true;
+      g.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
+      document.head.appendChild(g);
+    }
 
     // every tel: link, any page, one listener — fires in either consent state
     document.addEventListener('click', (e) => {

@@ -10,7 +10,8 @@ import { breadcrumbs } from '../lib/schema';
  * Analytics.astro). No retention periods or legal-entity details are stated,
  * because none were supplied — see the hand-off notes before launch.
  */
-const analytics = Boolean(site.analytics.ga4);
+const analytics = Boolean(site.analytics.ga4 || site.analytics.gtm);
+const gtm = Boolean(site.analytics.gtm);
 const updated = '11 ноември 2026';
 const c = site.controller;
 const fields = [
@@ -82,6 +83,9 @@ const fields = [
                 Използваме Google Analytics 4, за да отчитаме посещенията и колко от тях завършват с
                 обаждане (натискане на телефонния номер), и измерване на рекламите на Google. Работим
                 със Google Consent Mode v2.
+                {gtm
+                  ? ' Таговете на Google се управляват чрез Google Tag Manager, който се зарежда по същия начин и при същите условия като Google Analytics. Google Tag Manager сам не записва бисквитки; таговете на Google в него спазват избора ви по-долу.'
+                  : ''}
               </p>
               <p>
                 <b>Преди да изберете и ако откажете:</b> при всяко зареждане на страница определяме

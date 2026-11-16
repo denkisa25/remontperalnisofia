@@ -117,6 +117,11 @@ export const site = {
     // signals default to denied, granted only when the visitor accepts.
     // Empty = no consent banner and nothing is loaded from Google.
     ga4: 'G-SWVNVTCJP7',
+    // Google Tag Manager container (set up by the ads team, for Google Ads).
+    // Loaded by the same consent-gated script, AFTER the consent defaults, so its
+    // Google tags obey Consent Mode. No <noscript> iframe on purpose: it would load
+    // Google for visitors without any consent default. Empty = GTM not loaded.
+    gtm: 'GTM-542JN9V5',
     // Search Console HTML-tag verification token (content="…"). Empty = omitted.
     searchConsole: '',
     // fires on every tel: click (Google applies the visitor's consent state)
