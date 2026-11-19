@@ -117,6 +117,12 @@ export const site = {
     // signals default to denied, granted only when the visitor accepts.
     // Empty = no consent banner and nothing is loaded from Google.
     ga4: 'G-SWVNVTCJP7',
+    // TEMPORARY (added 2026-11-19): the ads team's Google Tag Manager container,
+    // kept until the GA4 -> Google Ads link + `call_click` conversion import
+    // replaces it. TO REMOVE: set gtm to '' — nothing else changes.
+    // Before/while it runs: get Admin access to the container, review its tags
+    // (Tag Assistant / Preview), and make sure any non-Google tag has
+    // "additional consent checks" — Consent Mode only gates Google's own tags.
     // Google Tag Manager container (set up by the ads team, for Google Ads).
     // Loaded by the same consent-gated script, AFTER the consent defaults, so its
     // Google tags obey Consent Mode. No <noscript> iframe on purpose: it would load

@@ -336,7 +336,8 @@ known which clicks became jobs.
 - Search Console verification
 - Google Consent Mode v2: all four signals (`ad_storage`, `analytics_storage`,
   `ad_user_data`, `ad_personalization`) default to `denied` before the GA4 tag
-  loads (and before the GTM container, `GTM-542JN9V5`, set up by the ads team);
+  loads (and before the TEMPORARY GTM container `GTM-542JN9V5` from the ads team —
+  remove by setting `analytics.gtm` to '' once the GA4 -> Ads link replaces it);
   `granted` only on "Приемам". Privacy and cookie pages must describe this
 
 This is a prerequisite for the Ads takeover, so it ships with v1.
